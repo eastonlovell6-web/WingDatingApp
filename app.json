@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "Wing",
+    "slug": "wing",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "wing",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#FBF8F5"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.wing.app"
+    },
+    "android": {
+      "package": "com.wing.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#FBF8F5"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-secure-store",
+      "expo-notifications"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

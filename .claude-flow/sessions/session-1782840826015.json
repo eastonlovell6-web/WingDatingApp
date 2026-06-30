@@ -1,0 +1,14 @@
+{
+  "id": "session-1782840826015",
+  "startedAt": "2026-06-30T17:33:46.015Z",
+  "cwd": "/Users/eastonlovell/Wing-Dating-App",
+  "context": {},
+  "metrics": {
+    "edits": 0,
+    "commands": 0,
+    "tasks": 0,
+    "errors": 0
+  },
+  "endedAt": "2026-06-30T17:33:46.380Z",
+  "duration": 366
+}
