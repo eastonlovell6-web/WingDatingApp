@@ -31,7 +31,15 @@ yarn-error.*
 *.pem
 
 # local env files
-.env*.local
+.env
+.env.*
+!.env.example
+
+# AI agent tooling (local / reinstallable — not part of the app)
+.claude/
+.claude-flow/
+.superpowers/
+.impeccable/
 
 # typescript
 *.tsbuildinfo
