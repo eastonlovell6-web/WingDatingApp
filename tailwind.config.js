@@ -57,10 +57,16 @@ module.exports = {
         "2xl": "36px",
         pill: "999px",
       },
+      // One family per weight — custom fonts can't switch weight via fontWeight
+      // on native. Mirrors constants/typography.ts `fonts` + the _layout useFonts keys.
       fontFamily: {
         display: ["BricolageGrotesque"],
+        "display-semibold": ["BricolageGrotesque-SemiBold"],
         body: ["DMSans"],
+        "body-medium": ["DMSans-Medium"],
+        "body-bold": ["DMSans-Bold"],
         mono: ["DMMono"],
+        "mono-medium": ["DMMono-Medium"],
       },
       fontSize: {
         "2xs": ["11px", "14px"],

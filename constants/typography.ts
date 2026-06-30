@@ -14,11 +14,21 @@
 
 import { coral, ink } from './colors';
 
-/** Family names — must match the keys passed to useFonts later. */
+/**
+ * Family names — must match the useFonts keys in app/_layout.tsx and the
+ * tailwind.config.js fontFamily map. Custom fonts can't switch weight via
+ * the `fontWeight` style on native, so each weight is registered as its own
+ * family. Reference these names directly; the weights below are kept only as
+ * a web/fallback hint.
+ */
 export const fonts = {
-  display: 'BricolageGrotesque',
-  body: 'DMSans',
-  mono: 'DMMono',
+  display: 'BricolageGrotesque', // 700 Bold baked in
+  displaySemibold: 'BricolageGrotesque-SemiBold', // 600
+  body: 'DMSans', // 400 Regular
+  bodyMedium: 'DMSans-Medium', // 600 SemiBold file
+  bodyBold: 'DMSans-Bold', // 700 Bold
+  mono: 'DMMono', // 400 Regular
+  monoMedium: 'DMMono-Medium', // 500 Medium
 } as const;
 
 /** Font weights by role. */
@@ -61,7 +71,7 @@ export const textStyles = {
     color: ink[900],
   },
   heading: {
-    fontFamily: fonts.display,
+    fontFamily: fonts.displaySemibold,
     fontWeight: weights.displaySemibold,
     fontSize: fontSize['2xl'][0],
     lineHeight: fontSize['2xl'][1],
@@ -83,7 +93,7 @@ export const textStyles = {
     color: ink[500],
   },
   eyebrow: {
-    fontFamily: fonts.mono,
+    fontFamily: fonts.monoMedium,
     fontWeight: weights.bodyMedium,
     fontSize: fontSize.xs[0],
     lineHeight: fontSize.xs[1],
@@ -92,7 +102,7 @@ export const textStyles = {
     color: coral[500],
   },
   stat: {
-    fontFamily: fonts.mono,
+    fontFamily: fonts.monoMedium,
     fontWeight: weights.bodyMedium,
     fontSize: fontSize['4xl'][0],
     lineHeight: fontSize['4xl'][1],

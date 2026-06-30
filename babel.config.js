@@ -5,9 +5,9 @@ module.exports = function (api) {
       ["babel-preset-expo", { jsxImportSource: "nativewind" }],
       "nativewind/babel",
     ],
-    plugins: [
-      // react-native-reanimated/plugin must be listed last.
-      "react-native-reanimated/plugin",
-    ],
+    // Reanimated 4 worklets are transformed by `react-native-worklets/plugin`,
+    // which the `nativewind/babel` preset (css-interop) already injects exactly
+    // once — adding it here too would duplicate the plugin. Keep this empty.
+    plugins: [],
   };
 };
