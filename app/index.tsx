@@ -6,6 +6,7 @@ import {
   StyleSheet,
   useWindowDimensions,
 } from "react-native";
+import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -25,24 +26,11 @@ import { scheduleOnRN } from "react-native-worklets";
 import * as Haptics from "expo-haptics";
 import Svg, { Path } from "react-native-svg";
 
-/** Paper-plane silhouette, shared by the logo mark and the flying plane. */
-const PLANE_PATH =
-  "M21.426 11.095 4.574 3.36a1 1 0 0 0-1.39 1.18l1.86 5.58a1 1 0 0 0 .77.67l6.19 1.03-6.19 1.03a1 1 0 0 0-.77.67l-1.86 5.58a1 1 0 0 0 1.39 1.18l16.852-7.735a1 1 0 0 0 0-1.81Z";
-
 import { Button } from "../components/ui/Button";
+import { WingMark } from "../components/ui/WingMark";
 import { coral, blush, ink, surface } from "../constants/colors";
 import { fonts } from "../constants/typography";
 
-/** Paper-plane mark, angled up-and-to-the-right. White in the logo; coral when it flies. */
-function WingMark({ size = 30, color = "#FFFFFF" }: { size?: number; color?: string }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path d={PLANE_PATH} fill={color} />
-    </Svg>
-  );
-}
-
-/** Thin right-arrow for the CTA. */
 function ArrowRight({ color = "#FFFFFF", size = 22 }: { color?: string; size?: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -69,7 +57,7 @@ const FLYER_SIZE = 30;
 // word, then settle + fade. The middle is linear so the coral visibly tracks
 // the plane (not a blur). Kept slow + deliberate — it's a hero moment.
 const FLY_IN_MS = 2300;
-const SWEEP_MS = 1500;
+const SWEEP_MS = 800;
 const SETTLE_MS = 700;
 
 export default function GetStarted() {
@@ -88,6 +76,8 @@ export default function GetStarted() {
   const [wordWidth, setWordWidth] = useState(0); // fixed width for the coral overlay copy
 
   const fireHaptic = () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  const goToPhoneEntry = () =>
+    router.push({ pathname: "/(auth)", params: { context: "new" } });
 
   // Buzz once the moment the paint reaches the word.
   useAnimatedReaction(
@@ -109,18 +99,18 @@ export default function GetStarted() {
       setWordWidth(width);
       progress.value = 0;
       progress.value = withSequence(
-        // Loop gracefully around the screen, easing into the word.
         withTiming(0.46, { duration: FLY_IN_MS, easing: Easing.inOut(Easing.quad) }),
-        // Steady sweep beneath the word — coral paints on in lockstep.
         withTiming(0.82, { duration: SWEEP_MS, easing: Easing.linear }),
-        // Drift past and fade out, word stays coral.
-        withTiming(1, { duration: SETTLE_MS, easing: Easing.in(Easing.quad) })
+        withTiming(1, { duration: SETTLE_MS, easing: Easing.in(Easing.quad) }, (finished) => {
+          if (finished) scheduleOnRN(goToPhoneEntry);
+        })
       );
     });
   };
 
-  // TODO(sign-in): route to the "I have an account" sign-in flow.
-  const handleSignIn = () => {};
+  const handleSignIn = () => {
+    router.push({ pathname: "/(auth)", params: { context: "returning" } });
+  };
 
   // Coral "paint" reveal — width grows left→right, in lockstep with the plane's sweep.
   const wipeStyle = useAnimatedStyle(() => ({
