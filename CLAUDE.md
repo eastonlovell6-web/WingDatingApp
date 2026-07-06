@@ -274,7 +274,8 @@ matchmaker_stats — user_id, intros_sent, intros_accepted (counts only)
   /(auth)
     index.tsx          — phone number entry
     verify.tsx         — OTP verification
-    onboarding.tsx     — name, photos, friend visibility setup
+    intent.tsx         — "What brings you to Wing?" (wing-me | wing-somebody)
+    onboarding.tsx     — name, photos, friend visibility setup (headline varies by ?intent=)
   /(tabs)
     index.tsx          — home feed (incoming intros + friends row)
     discover.tsx       — friends-of-friends browse

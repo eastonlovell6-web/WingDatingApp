@@ -153,7 +153,7 @@ export default function Verify() {
   // crashes the app natively when invoked across runtimes.
   const finishSuccess = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setTimeout(() => router.replace("/(auth)/onboarding"), 450);
+    setTimeout(() => router.replace("/(auth)/intent"), 450);
   };
 
   const triggerSuccessAnimation = () => {

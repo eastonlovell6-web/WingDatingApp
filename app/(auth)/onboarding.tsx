@@ -15,9 +15,11 @@ const ImagePicker: typeof ImagePickerTypes | null = (() => {
   try { return require("expo-image-picker"); } catch { return null; }
 })();
 import { LinearGradient } from "expo-linear-gradient";
+import { router, useLocalSearchParams } from "expo-router";
 import Animated, { FadeInUp, FadeIn } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Svg, { Path } from "react-native-svg";
 import { coral, ink, surface } from "../../constants/colors";
 import { fonts, textStyles } from "../../constants/typography";
 import { radii } from "../../constants/spacing";
@@ -30,6 +32,20 @@ const CONTENT_W = SCREEN_W - 48;
 const GAP = 8;
 const TOP_ROW_H = 264;
 const BOTTOM_SLOT = Math.floor((CONTENT_W - GAP * 2) / 3);
+
+function ChevronLeft() {
+  return (
+    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M15 18l-6-6 6-6"
+        stroke={ink[500]}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
 
 function StepDots({ step }: { step: number }) {
   return (
@@ -166,6 +182,12 @@ function SlotFrame({
 export default function Onboarding() {
   const insets = useSafeAreaInsets();
   const user = useAuthStore((s) => s.user);
+  // Set on the "What brings you to Wing?" screen; shapes the photos headline.
+  const { intent } = useLocalSearchParams<{ intent?: string }>();
+  const photosHeadline =
+    intent === "wing-somebody"
+      ? "Put a face to the matchmaker"
+      : "Give your wingman something to work with";
   const [step, setStep] = useState(0);
   const [photos, setPhotos] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -263,15 +285,26 @@ export default function Onboarding() {
 
   return (
     <View style={{ flex: 1, backgroundColor: surface.cream }}>
-      {/* Step indicator */}
+      {/* Top bar — back to the intent screen, step dots centered */}
       <View
         style={{
           paddingTop: insets.top + 16,
           paddingHorizontal: 24,
           paddingBottom: 12,
+          justifyContent: "center",
         }}
       >
         <StepDots step={0} />
+        <Pressable
+          onPress={() => {
+            if (router.canGoBack()) router.back();
+            else router.replace("/(auth)/intent");
+          }}
+          hitSlop={12}
+          style={{ position: "absolute", left: 24, top: insets.top + 13 }}
+        >
+          <ChevronLeft />
+        </Pressable>
       </View>
 
       {/* Scrollable content */}
@@ -296,7 +329,7 @@ export default function Onboarding() {
               marginBottom: 8,
             }}
           >
-            Add your best photo
+            {photosHeadline}
           </Text>
           <Text style={{ ...textStyles.caption, marginBottom: 20 }}>
             This is the first thing people see. Make it you.
