@@ -26,7 +26,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 import * as Haptics from "expo-haptics";
-import Svg, { Path } from "react-native-svg";
+import Svg, { Circle, Path } from "react-native-svg";
 
 import { Button } from "../../components/ui/Button";
 import { WingMark } from "../../components/ui/WingMark";
@@ -38,6 +38,22 @@ import { radii } from "../../constants/spacing";
 const LARGE_PLANE = 56;
 const HEADER_PLANE = 18;
 const START_SCALE = HEADER_PLANE / LARGE_PLANE;
+
+// The success "flight loop": the plane laps a dotted circular flight path
+// (our loading spinner), then breaks off toward the next screen.
+const ORBIT_R = 76;
+const ORBIT_PAD = 10; // room for the stroke so it isn't clipped
+const ORBIT_C = ORBIT_R + ORBIT_PAD; // center of the orbit box, local coords
+const ORBIT_S = ORBIT_C * 2;
+
+// Point on the orbit circle at `deg` (SVG y-down space; -90 is the top).
+const orbitPt = (deg: number) => {
+  const rad = (deg * Math.PI) / 180;
+  return `${ORBIT_C + ORBIT_R * Math.cos(rad)} ${ORBIT_C + ORBIT_R * Math.sin(rad)}`;
+};
+// Contrail arcs trailing the plane, which rides the top of the loop clockwise.
+const TAIL_D = `M ${orbitPt(-200)} A ${ORBIT_R} ${ORBIT_R} 0 0 1 ${orbitPt(-90)}`;
+const TAIL_HOT_D = `M ${orbitPt(-135)} A ${ORBIT_R} ${ORBIT_R} 0 0 1 ${orbitPt(-90)}`;
 
 function ChevronLeft() {
   return (
@@ -76,10 +92,14 @@ export default function Verify() {
   // Success animation shared values
   const successProgress = useSharedValue(0);
   const planeScale = useSharedValue(START_SCALE);
-  const headerMarkX = useSharedValue(0);
-  const headerMarkY = useSharedValue(0);
-  const screenCX = useSharedValue(0);
-  const screenCY = useSharedValue(0);
+  // Center of the header wing mark, measured when the animation starts.
+  const headerX = useSharedValue(0);
+  const headerY = useSharedValue(0);
+
+  // Where the flight loop sits on screen (static per layout).
+  const orbitCX = W / 2;
+  const orbitCY = H / 2 - 40;
+  const orbitTopY = orbitCY - ORBIT_R;
 
   const startCooldown = () => {
     setCooldown(60);
@@ -127,32 +147,39 @@ export default function Verify() {
     if (ok) startCooldown();
   };
 
+  // Runs on the RN runtime after the flight finishes. Must stay a
+  // component-scope function passed to scheduleOnRN by reference — an inline
+  // closure created inside the worklet callback lives on the UI runtime and
+  // crashes the app natively when invoked across runtimes.
+  const finishSuccess = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setTimeout(() => router.replace("/(auth)/onboarding"), 450);
+  };
+
   const triggerSuccessAnimation = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
     headerMarkRef.current?.measureInWindow((x, y, width, height) => {
-      headerMarkX.value = x + width / 2 - LARGE_PLANE / 2;
-      headerMarkY.value = y + height / 2 - LARGE_PLANE / 2;
-      screenCX.value = W / 2 - LARGE_PLANE / 2;
-      screenCY.value = H / 2 - LARGE_PLANE / 2 - 28;
+      headerX.value = x + width / 2;
+      headerY.value = y + height / 2;
 
       setShowSuccess(true);
 
       planeScale.value = START_SCALE;
       planeScale.value = withDelay(
-        280,
+        160,
         withSpring(1.0, { mass: 0.5, damping: 11, stiffness: 160 })
       );
 
+      successProgress.value = 0;
       successProgress.value = withSequence(
-        withTiming(0.25, { duration: 300, easing: Easing.out(Easing.quad) }),
-        withTiming(1.0, { duration: 900, easing: Easing.out(Easing.cubic) }, (finished) => {
-          if (finished) {
-            scheduleOnRN(() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              setTimeout(() => router.replace("/(auth)/onboarding"), 600);
-            });
-          }
+        // Leave the header and swoop down to the top of the flight loop.
+        withTiming(0.22, { duration: 420, easing: Easing.out(Easing.quad) }),
+        // Two laps around the loop — the "getting you in" loader moment.
+        withTiming(0.78, { duration: 1300, easing: Easing.linear }),
+        // Break off the loop and fly out toward the next screen.
+        withTiming(1, { duration: 620, easing: Easing.out(Easing.cubic) }, (finished) => {
+          if (finished) scheduleOnRN(finishSuccess);
         })
       );
     });
@@ -167,29 +194,82 @@ export default function Verify() {
     opacity: interpolate(successProgress.value, [0, 0.1], [1, 0], Extrapolation.CLAMP),
   }));
 
+  // Free-flying plane: header → top of the loop, then (after the laps,
+  // handled by the orbiting copy) top of the loop → off-screen right.
   const flyerStyle = useAnimatedStyle(() => {
     const p = successProgress.value;
-    const tx = interpolate(
+    const cx = interpolate(
       p,
-      [0, 0.25, 1.0],
-      [headerMarkX.value, headerMarkX.value, screenCX.value],
+      [0, 0.1, 0.22, 0.78, 0.9, 1],
+      [
+        headerX.value,
+        headerX.value + (orbitCX - headerX.value) * 0.35,
+        orbitCX,
+        orbitCX,
+        W * 0.74,
+        W + 90,
+      ],
       Extrapolation.CLAMP
     );
-    const ty = interpolate(
+    const cy = interpolate(
       p,
-      [0, 0.25, 1.0],
-      [headerMarkY.value, headerMarkY.value, screenCY.value],
+      [0, 0.1, 0.22, 0.78, 0.9, 1],
+      [
+        headerY.value,
+        headerY.value + (orbitTopY - headerY.value) * 0.62,
+        orbitTopY,
+        orbitTopY,
+        orbitTopY - H * 0.1,
+        orbitTopY - H * 0.24,
+      ],
       Extrapolation.CLAMP
     );
-    const opacity = interpolate(p, [0, 0.03, 1], [0, 1, 1], Extrapolation.CLAMP);
+    const rot = interpolate(
+      p,
+      [0, 0.1, 0.22, 0.78, 1],
+      [8, 14, 0, 0, -28],
+      Extrapolation.CLAMP
+    );
+    // Visible on the way in and the way out; the orbiting copy covers the laps.
+    const opacity = interpolate(
+      p,
+      [0, 0.03, 0.215, 0.222, 0.778, 0.785, 0.97, 1],
+      [0, 1, 1, 0, 0, 1, 1, 0],
+      Extrapolation.CLAMP
+    );
     return {
       opacity,
       position: "absolute",
       transform: [
-        { translateX: tx },
-        { translateY: ty },
+        { translateX: cx - LARGE_PLANE / 2 },
+        { translateY: cy - LARGE_PLANE / 2 },
         { scale: planeScale.value },
-        { rotate: "-8deg" },
+        { rotate: `${rot}deg` },
+      ],
+    };
+  });
+
+  // The whole loop (track + contrail + plane) spins as one — the plane rides
+  // the top of the circle, so rotating the box flies it clockwise with its
+  // nose along the tangent, contrail trailing behind.
+  const orbitStyle = useAnimatedStyle(() => {
+    const p = successProgress.value;
+    return {
+      opacity: interpolate(
+        p,
+        [0.215, 0.222, 0.778, 0.785],
+        [0, 1, 1, 0],
+        Extrapolation.CLAMP
+      ),
+      transform: [
+        {
+          rotate: `${interpolate(
+            p,
+            [0.22, 0.36, 0.6, 0.78],
+            [0, 210, 560, 720],
+            Extrapolation.CLAMP
+          )}deg`,
+        },
       ],
     };
   });
@@ -199,23 +279,6 @@ export default function Verify() {
       successProgress.value,
       [0.1, 0.4, 1.0],
       [0, 0.28, 0.22],
-      Extrapolation.CLAMP
-    ),
-  }));
-
-  const haloStyle = useAnimatedStyle(() => ({
-    transform: [{
-      scale: interpolate(
-        successProgress.value,
-        [0.55, 0.82, 1.0],
-        [0, 1.15, 1.0],
-        Extrapolation.CLAMP
-      ),
-    }],
-    opacity: interpolate(
-      successProgress.value,
-      [0.55, 0.68, 1.0],
-      [0, 0.45, 0.25],
       Extrapolation.CLAMP
     ),
   }));
@@ -258,8 +321,13 @@ export default function Verify() {
           <View style={{ width: 24 }} />
         </View>
 
+        {/* Entering animation and animated opacity live on separate views —
+            combining them on one view makes Reanimated fight over `opacity`. */}
         <Animated.View
           entering={FadeInUp.duration(260).delay(200)}
+          style={{ flex: 1 }}
+        >
+        <Animated.View
           style={[
             contentFadeStyle,
             {
@@ -410,6 +478,7 @@ export default function Verify() {
             </Text>
           </View>
         </Animated.View>
+        </Animated.View>
       </KeyboardAvoidingView>
 
       {/* Success animation layer — absolutely positioned, non-interactive */}
@@ -420,34 +489,70 @@ export default function Verify() {
             style={[StyleSheet.absoluteFill, { backgroundColor: coral[100] }, tintStyle]}
           />
 
-          {/* Halo circle behind the plane */}
+          {/* Flight loop — dotted flight path, contrail, and the lapping plane */}
           <Animated.View
             style={[
               {
                 position: "absolute",
-                width: 128,
-                height: 128,
-                borderRadius: 64,
-                backgroundColor: coral[100],
-                alignSelf: "center",
-                top: H / 2 - 64 - 28,
+                left: orbitCX - ORBIT_C,
+                top: orbitCY - ORBIT_C,
+                width: ORBIT_S,
+                height: ORBIT_S,
               },
-              haloStyle,
+              orbitStyle,
             ]}
-          />
+          >
+            <Svg width={ORBIT_S} height={ORBIT_S}>
+              <Circle
+                cx={ORBIT_C}
+                cy={ORBIT_C}
+                r={ORBIT_R}
+                stroke={coral[300]}
+                strokeOpacity={0.45}
+                strokeWidth={2}
+                strokeDasharray="1 12"
+                strokeLinecap="round"
+                fill="none"
+              />
+              <Path
+                d={TAIL_D}
+                stroke={coral[300]}
+                strokeOpacity={0.55}
+                strokeWidth={4}
+                strokeLinecap="round"
+                fill="none"
+              />
+              <Path
+                d={TAIL_HOT_D}
+                stroke={coral[500]}
+                strokeWidth={4}
+                strokeLinecap="round"
+                fill="none"
+              />
+            </Svg>
+            <View
+              style={{
+                position: "absolute",
+                left: ORBIT_C - LARGE_PLANE / 2,
+                top: ORBIT_C - ORBIT_R - LARGE_PLANE / 2,
+              }}
+            >
+              <WingMark size={LARGE_PLANE} color={coral[500]} />
+            </View>
+          </Animated.View>
 
-          {/* Flying WingMark — travels from header position to screen center */}
+          {/* Free-flying WingMark — header → loop, then loop → off-screen */}
           <Animated.View style={flyerStyle}>
             <WingMark size={LARGE_PLANE} color={coral[500]} />
           </Animated.View>
 
-          {/* "You're in." — rises into view as the plane lands */}
+          {/* "You're in." — lands at the loop's center as the plane departs */}
           <Animated.View
-            entering={FadeInUp.duration(220).delay(980)}
+            entering={FadeInUp.duration(300).delay(1740)}
             style={{
               position: "absolute",
               alignSelf: "center",
-              top: H / 2 + LARGE_PLANE / 2 - 28 + 20,
+              top: orbitCY - 20,
               alignItems: "center",
             }}
           >
