@@ -348,3 +348,12 @@ Before marking any screen done:
 - No expansion until 500+ active users on one campus with >40% weekly retention
 - Matchmaker badge/score is the status signal — top matchmakers visible within friend group
 - Expect sandbox adoption: users test with 1-2 friends before expanding network
+
+---
+
+## Self-Maintenance Rule
+After every major implementation (e.g., new api routes, database migrations, state managers, or testing architectural shifts):
+1. Update this CLAUDE.md file immediately to reflect the current state.
+2. Add new files, paths, or commands to the relevant tables.
+3. Log any new "Gotchas & Pitfalls" or newly discovered project conventions.
+4. Keep this file under 500 lines; move extensive details to reference files.
