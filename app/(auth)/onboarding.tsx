@@ -8,7 +8,12 @@ import {
   TouchableOpacity,
   Dimensions,
 } from "react-native";
-import * as ImagePicker from "expo-image-picker";
+import type * as ImagePickerTypes from "expo-image-picker";
+// Defensive require — TurboModule crash on custom dev builds missing native rebuild
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const ImagePicker: typeof ImagePickerTypes | null = (() => {
+  try { return require("expo-image-picker"); } catch { return null; }
+})();
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { FadeInUp, FadeIn } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
@@ -166,6 +171,7 @@ export default function Onboarding() {
   const [isUploading, setIsUploading] = useState(false);
 
   async function openCamera() {
+    if (!ImagePicker) return;
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
       openGallery(0);
@@ -186,8 +192,8 @@ export default function Onboarding() {
   }
 
   async function openGallery(slotIndex: number) {
-    const { status } =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!ImagePicker) return;
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") return;
     const result = await ImagePicker.launchImageLibraryAsync({
       quality: 0.85,
