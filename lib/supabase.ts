@@ -21,3 +21,25 @@ export const supabase = createClient(
     },
   }
 );
+
+export async function uploadProfilePhoto(userId: string, localUri: string): Promise<string> {
+  const path = `${userId}/${Date.now()}.jpg`;
+  const response = await fetch(localUri);
+  const arrayBuffer = await response.arrayBuffer();
+  const bytes = new Uint8Array(arrayBuffer);
+  const { error } = await supabase.storage
+    .from("user-photos")
+    .upload(path, bytes, { contentType: "image/jpeg" });
+  if (error) throw error;
+  return supabase.storage.from("user-photos").getPublicUrl(path).data.publicUrl;
+}
+
+export async function upsertUserProfile(
+  userId: string,
+  fields: { name?: string; photos?: string[]; bio_prompts?: object[] }
+) {
+  const { error } = await supabase
+    .from("users")
+    .upsert({ id: userId, ...fields }, { onConflict: "id" });
+  if (error) throw error;
+}

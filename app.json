@@ -30,7 +30,14 @@
       "expo-font",
       "expo-secure-store",
       "expo-notifications",
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Wing needs your photos to build your profile.",
+          "cameraPermission": "Wing uses the camera so you can take your profile photo."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
