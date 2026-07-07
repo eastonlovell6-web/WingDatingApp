@@ -16,59 +16,81 @@ export type OnboardingIntent = "wing-me" | "wing-somebody";
 function IntentCard({
   title,
   subtitle,
-  iconColor,
+  tintBg,
+  tintColor,
   delay,
   onPress,
 }: {
   title: string;
   subtitle: string;
-  iconColor: string;
+  tintBg: string;
+  tintColor: string;
   delay: number;
   onPress: () => void;
 }) {
   return (
     <Animated.View entering={FadeInUp.duration(280).delay(delay)}>
-      <Pressable
-        onPress={onPress}
-        style={({ pressed }) => ({
-          backgroundColor: surface.paper,
-          borderRadius: radii.lg,
-          paddingVertical: 24,
-          paddingHorizontal: 24,
-          shadowColor: shadowTint,
-          shadowOpacity: 1,
-          shadowRadius: 20,
-          shadowOffset: { width: 0, height: 8 },
-          elevation: 4,
-          transform: [{ scale: pressed ? 0.98 : 1 }],
-        })}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <WingMark size={20} color={iconColor} />
-          <Text
+      {/* Style must live on the inner View, not the Pressable — Pressable
+          styles don't render on-device here (see Button.tsx pattern). */}
+      <Pressable onPress={onPress}>
+        {({ pressed }) => (
+          <View
             style={{
-              fontFamily: fonts.display,
-              fontSize: 22,
-              lineHeight: 28,
-              letterSpacing: -0.3,
-              color: ink[900],
-              marginLeft: 10,
+              minHeight: 210,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              backgroundColor: surface.paper,
+              borderRadius: radii.xl,
+              borderWidth: 1.5,
+              borderColor: tintBg,
+              paddingHorizontal: 28,
+              shadowColor: shadowTint,
+              shadowOpacity: 1,
+              shadowRadius: 20,
+              shadowOffset: { width: 0, height: 8 },
+              elevation: 4,
+              transform: [{ scale: pressed ? 0.98 : 1 }],
             }}
           >
-            {title}
-          </Text>
-        </View>
-        <Text
-          style={{
-            fontFamily: fonts.body,
-            fontSize: 15,
-            lineHeight: 22,
-            color: ink[500],
-            marginTop: 6,
-          }}
-        >
-          {subtitle}
-        </Text>
+            <View style={{ flexShrink: 1, paddingRight: 16 }}>
+              <Text
+                style={{
+                  fontFamily: fonts.display,
+                  fontSize: 26,
+                  lineHeight: 32,
+                  letterSpacing: -0.4,
+                  color: ink[900],
+                }}
+              >
+                {title}
+              </Text>
+              <Text
+                style={{
+                  fontFamily: fonts.body,
+                  fontSize: 16,
+                  lineHeight: 24,
+                  color: ink[500],
+                  marginTop: 6,
+                }}
+              >
+                {subtitle}
+              </Text>
+            </View>
+            <View
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: radii.pill,
+                backgroundColor: tintBg,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <WingMark size={24} color={tintColor} />
+            </View>
+          </View>
+        )}
       </Pressable>
     </Animated.View>
   );
@@ -110,21 +132,43 @@ export default function Intent() {
             What brings you{"\n"}to Wing?
           </Text>
         </Animated.View>
+        <Animated.View entering={FadeInUp.duration(280).delay(140)}>
+          <Text
+            style={{
+              fontFamily: fonts.body,
+              fontSize: 16,
+              lineHeight: 22,
+              color: "rgba(255,255,255,0.85)",
+              marginTop: 12,
+            }}
+          >
+            You can always change this later
+          </Text>
+        </Animated.View>
       </LinearGradient>
 
-      <View style={{ flex: 1, paddingHorizontal: 24, marginTop: 24 }}>
+      <View
+        style={{
+          flex: 1,
+          paddingHorizontal: 24,
+          paddingTop: 40,
+          paddingBottom: insets.bottom + 24,
+        }}
+      >
         <IntentCard
-          title="Wing Me"
+          title="Wing me"
           subtitle="I'm ready to be introduced"
-          iconColor={coral[500]}
+          tintBg={coral[100]}
+          tintColor={coral[500]}
           delay={160}
           onPress={() => choose("wing-me")}
         />
-        <View style={{ height: 16 }} />
+        <View style={{ height: 20 }} />
         <IntentCard
           title="I'll wing somebody"
           subtitle="I want to set up a friend"
-          iconColor={plum[500]}
+          tintBg={plum[100]}
+          tintColor={plum[500]}
           delay={260}
           onPress={() => choose("wing-somebody")}
         />

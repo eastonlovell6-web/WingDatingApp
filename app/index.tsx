@@ -223,7 +223,7 @@ export default function GetStarted() {
       >
         <Animated.View entering={FadeInDown.duration(260).delay(120)}>
           <Text style={[headlineStyle, { color: ink[900] }]}>
-            Ghosted?{"\n"}You need a
+            Your type?{"\n"}Leave it to your
           </Text>
 
           {/* "wingman." — black base with a coral copy revealed left→right by the plane. */}

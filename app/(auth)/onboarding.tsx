@@ -1,37 +1,38 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  Image,
-  ScrollView,
-  Pressable,
-  TouchableOpacity,
-  Dimensions,
-} from "react-native";
+import { View, Text, ScrollView, Pressable, TouchableOpacity } from "react-native";
 import type * as ImagePickerTypes from "expo-image-picker";
 // Defensive require — TurboModule crash on custom dev builds missing native rebuild
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const ImagePicker: typeof ImagePickerTypes | null = (() => {
   try { return require("expo-image-picker"); } catch { return null; }
 })();
-import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
-import Animated, { FadeInUp, FadeIn } from "react-native-reanimated";
+import Animated, { FadeInUp } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { coral, ink, surface } from "../../constants/colors";
 import { fonts, textStyles } from "../../constants/typography";
-import { radii } from "../../constants/spacing";
 import { Button } from "../../components/ui/Button";
+import { PhotoGrid } from "../../components/onboarding/PhotoGrid";
+import { PhotoCardPreview } from "../../components/onboarding/PhotoCardPreview";
+import { FriendVisibilityList } from "../../components/onboarding/FriendVisibilityList";
 import { useAuthStore } from "../../store/auth";
 import { uploadProfilePhoto, upsertUserProfile } from "../../lib/supabase";
 
-const { width: SCREEN_W } = Dimensions.get("window");
-const CONTENT_W = SCREEN_W - 48;
-const GAP = 8;
-const TOP_ROW_H = 264;
-const BOTTOM_SLOT = Math.floor((CONTENT_W - GAP * 2) / 3);
+// Placeholder until contacts-sync + the friendships table are wired up.
+const MOCK_FRIENDS = [
+  { id: "1", name: "Maya Torres" },
+  { id: "2", name: "Jordan Lee" },
+  { id: "3", name: "Sam Okafor" },
+  { id: "4", name: "Ava Bennett" },
+  { id: "5", name: "Noah Kim" },
+  { id: "6", name: "Priya Shah" },
+  { id: "7", name: "Ethan Brooks" },
+  { id: "8", name: "Zoe Marchetti" },
+  { id: "9", name: "Lucas Ferreira" },
+  { id: "10", name: "Chloe Nguyen" },
+];
 
 function ChevronLeft() {
   return (
@@ -65,120 +66,6 @@ function StepDots({ step }: { step: number }) {
   );
 }
 
-function PhotoSlot({
-  uri,
-  onPress,
-  isPrimary,
-}: {
-  uri?: string;
-  onPress: () => void;
-  isPrimary?: boolean;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => ({
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-        opacity: pressed ? 0.82 : 1,
-      })}
-    >
-      {uri ? (
-        <>
-          <Image
-            source={{ uri }}
-            style={{ width: "100%", height: "100%" }}
-            resizeMode="cover"
-          />
-          {isPrimary && (
-            <View
-              style={{
-                position: "absolute",
-                top: 8,
-                left: 8,
-                backgroundColor: "rgba(0,0,0,0.38)",
-                paddingHorizontal: 7,
-                paddingVertical: 3,
-                borderRadius: 6,
-              }}
-            >
-              <Text
-                style={{
-                  fontFamily: fonts.mono,
-                  fontSize: 10,
-                  color: "#fff",
-                  letterSpacing: 0.8,
-                }}
-              >
-                PRIMARY
-              </Text>
-            </View>
-          )}
-        </>
-      ) : (
-        <View style={{ alignItems: "center", gap: 4 }}>
-          <Text
-            style={{
-              fontSize: isPrimary ? 24 : 18,
-              color: isPrimary ? coral[500] : ink[300],
-              fontFamily: fonts.bodyMedium,
-              lineHeight: isPrimary ? 28 : 22,
-            }}
-          >
-            +
-          </Text>
-          {isPrimary && (
-            <Text
-              style={{ fontFamily: fonts.body, fontSize: 12, color: ink[500] }}
-            >
-              Tap to add
-            </Text>
-          )}
-        </View>
-      )}
-    </Pressable>
-  );
-}
-
-function SlotFrame({
-  index,
-  photos,
-  onPress,
-  style,
-}: {
-  index: number;
-  photos: string[];
-  onPress: (i: number) => void;
-  style?: object;
-}) {
-  const uri = photos[index];
-  const isPrimary = index === 0;
-  const empty = !uri;
-
-  return (
-    <View
-      style={[
-        {
-          borderRadius: radii.md,
-          backgroundColor: empty ? surface.creamDeep : "transparent",
-          borderWidth: empty ? 1.5 : 0,
-          borderColor: isPrimary ? coral[300] : ink[200],
-        },
-        style,
-      ]}
-    >
-      <View style={{ flex: 1, borderRadius: radii.md, overflow: "hidden" }}>
-        <PhotoSlot
-          uri={uri}
-          onPress={() => onPress(index)}
-          isPrimary={isPrimary}
-        />
-      </View>
-    </View>
-  );
-}
-
 export default function Onboarding() {
   const insets = useSafeAreaInsets();
   const user = useAuthStore((s) => s.user);
@@ -191,6 +78,8 @@ export default function Onboarding() {
   const [step, setStep] = useState(0);
   const [photos, setPhotos] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  // can_introduce defaults false for every friend — explicit opt-in only.
+  const [visibility, setVisibility] = useState<Record<string, boolean>>({});
 
   async function openCamera() {
     if (!ImagePicker) return;
@@ -232,8 +121,7 @@ export default function Onboarding() {
   }
 
   function handleSlotPress(i: number) {
-    if (i === 0) openCamera();
-    else openGallery(i);
+    openGallery(i);
   }
 
   async function handleContinue() {
@@ -255,9 +143,22 @@ export default function Onboarding() {
   }
 
   const hasPhoto = photos.some(Boolean);
-  const firstPhoto = photos.find(Boolean);
 
-  if (step >= 1) {
+  function toggleFriend(id: string) {
+    setVisibility((prev) => ({ ...prev, [id]: !prev[id] }));
+  }
+
+  function selectAllFriends() {
+    setVisibility(
+      Object.fromEntries(MOCK_FRIENDS.map((f) => [f.id, true]))
+    );
+  }
+
+  function selectNoFriends() {
+    setVisibility({});
+  }
+
+  if (step >= 2) {
     return (
       <View
         style={{
@@ -277,8 +178,100 @@ export default function Onboarding() {
             letterSpacing: -0.5,
           }}
         >
-          Step 2 coming next.
+          You're in! Home is coming next.
         </Text>
+      </View>
+    );
+  }
+
+  if (step === 1) {
+    return (
+      <View style={{ flex: 1, backgroundColor: surface.cream }}>
+        {/* Top bar — back to the photos step, step dots centered */}
+        <View
+          style={{
+            paddingTop: insets.top + 16,
+            paddingHorizontal: 24,
+            paddingBottom: 24,
+            justifyContent: "center",
+          }}
+        >
+          <StepDots step={1} />
+          <Pressable
+            onPress={() => setStep(0)}
+            hitSlop={12}
+            style={{ position: "absolute", left: 24, top: insets.top + 13 }}
+          >
+            <ChevronLeft />
+          </Pressable>
+        </View>
+
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 16 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Animated.View entering={FadeInUp.duration(260).delay(80)}>
+            <Text style={{ ...textStyles.eyebrow, marginBottom: 8 }}>
+              Step 2 of 3
+            </Text>
+            <Text
+              style={{
+                fontFamily: fonts.display,
+                fontSize: 36,
+                color: ink[900],
+                letterSpacing: -0.5,
+                lineHeight: 42,
+                marginBottom: 8,
+              }}
+            >
+              Who can introduce you?
+            </Text>
+            <Text style={{ ...textStyles.caption, marginBottom: 20 }}>
+              Only friends you approve can suggest matches for you. You can
+              change this anytime.
+            </Text>
+          </Animated.View>
+
+          <Animated.View entering={FadeInUp.duration(260).delay(140)}>
+            <FriendVisibilityList
+              friends={MOCK_FRIENDS}
+              visibility={visibility}
+              onToggle={toggleFriend}
+              onSelectAll={selectAllFriends}
+              onSelectNone={selectNoFriends}
+            />
+          </Animated.View>
+        </ScrollView>
+
+        {/* Pinned bottom CTA */}
+        <View
+          style={{
+            paddingHorizontal: 24,
+            paddingBottom: insets.bottom + 24,
+            paddingTop: 12,
+            backgroundColor: surface.cream,
+          }}
+        >
+          <Button title="Continue" onPress={() => setStep(2)} />
+          <Pressable
+            onPress={() => setStep(2)}
+            hitSlop={8}
+            style={{ alignItems: "center", marginTop: 14 }}
+          >
+            <Text
+              style={{
+                fontFamily: fonts.body,
+                fontSize: 14,
+                color: ink[500],
+                textDecorationLine: "underline",
+              }}
+            >
+              I'll do this later
+            </Text>
+          </Pressable>
+        </View>
       </View>
     );
   }
@@ -290,7 +283,7 @@ export default function Onboarding() {
         style={{
           paddingTop: insets.top + 16,
           paddingHorizontal: 24,
-          paddingBottom: 12,
+          paddingBottom: 24,
           justifyContent: "center",
         }}
       >
@@ -336,118 +329,16 @@ export default function Onboarding() {
           </Text>
         </Animated.View>
 
-        {/* Photo grid */}
-        <Animated.View entering={FadeInUp.duration(260).delay(140)}>
-          {/* Top row: large primary (2/3) + 2 stacked (1/3) */}
-          <View style={{ flexDirection: "row", gap: GAP, height: TOP_ROW_H }}>
-            <SlotFrame
-              index={0}
-              photos={photos}
-              onPress={handleSlotPress}
-              style={{ flex: 2 }}
-            />
-            <View style={{ flex: 1, gap: GAP }}>
-              <SlotFrame
-                index={1}
-                photos={photos}
-                onPress={handleSlotPress}
-                style={{ flex: 1 }}
-              />
-              <SlotFrame
-                index={2}
-                photos={photos}
-                onPress={handleSlotPress}
-                style={{ flex: 1 }}
-              />
-            </View>
-          </View>
+        <PhotoGrid photos={photos} onSlotPress={handleSlotPress} />
 
-          {/* Bottom row: 3 equal squares */}
-          <View
-            style={{ flexDirection: "row", gap: GAP, marginTop: GAP }}
-          >
-            {[3, 4, 5].map((i) => (
-              <SlotFrame
-                key={i}
-                index={i}
-                photos={photos}
-                onPress={handleSlotPress}
-                style={{ flex: 1, height: BOTTOM_SLOT }}
-              />
-            ))}
-          </View>
-        </Animated.View>
+        {hasPhoto && <PhotoCardPreview photos={photos} />}
 
-        {/* Card preview — slides in when first photo is added */}
-        {hasPhoto && (
-          <Animated.View entering={FadeIn.duration(320)} style={{ marginTop: 24 }}>
-            <Text
-              style={{
-                ...textStyles.eyebrow,
-                marginBottom: 10,
-              }}
-            >
-              Card Preview
-            </Text>
-            <View
-              style={{
-                borderRadius: radii.lg,
-                overflow: "hidden",
-                height: 120,
-              }}
-            >
-              <Image
-                source={{ uri: firstPhoto }}
-                style={{ width: "100%", height: "100%" }}
-                resizeMode="cover"
-              />
-              <LinearGradient
-                colors={["transparent", "rgba(26,20,18,0.72)"]}
-                style={{
-                  position: "absolute",
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  height: 68,
-                }}
-              />
-              <Text
-                style={{
-                  position: "absolute",
-                  bottom: 14,
-                  left: 14,
-                  fontFamily: fonts.displaySemibold,
-                  fontSize: 18,
-                  color: "#fff",
-                  letterSpacing: -0.2,
-                }}
-              >
-                You
-              </Text>
-            </View>
-            <Text
-              style={{
-                ...textStyles.caption,
-                textAlign: "center",
-                marginTop: 8,
-              }}
-            >
-              This is how you'll appear in intros
-            </Text>
-          </Animated.View>
-        )}
-
-        {/* Library link */}
+        {/* Camera link */}
         <Animated.View
           entering={FadeInUp.duration(260).delay(200)}
           style={{ alignItems: "center", marginTop: 20 }}
         >
-          <TouchableOpacity
-            onPress={() => {
-              const firstEmpty = photos.findIndex((p) => !p);
-              openGallery(firstEmpty === -1 ? 0 : firstEmpty);
-            }}
-          >
+          <TouchableOpacity onPress={openCamera}>
             <Text
               style={{
                 fontFamily: fonts.body,
@@ -456,7 +347,7 @@ export default function Onboarding() {
                 textDecorationLine: "underline",
               }}
             >
-              Choose from library
+              Take a photo
             </Text>
           </TouchableOpacity>
         </Animated.View>

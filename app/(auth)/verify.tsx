@@ -158,6 +158,7 @@ export default function Verify() {
 
   const triggerSuccessAnimation = () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    inputRef.current?.blur();
 
     headerMarkRef.current?.measureInWindow((x, y, width, height) => {
       headerX.value = x + width / 2;
