@@ -17,6 +17,7 @@ import { Button } from "../../components/ui/Button";
 import { PhotoGrid } from "../../components/onboarding/PhotoGrid";
 import { PhotoCardPreview } from "../../components/onboarding/PhotoCardPreview";
 import { FriendVisibilityList } from "../../components/onboarding/FriendVisibilityList";
+import { CelebrationStep } from "../../components/onboarding/CelebrationStep";
 import { useAuthStore } from "../../store/auth";
 import { uploadProfilePhoto, upsertUserProfile } from "../../lib/supabase";
 
@@ -158,7 +159,7 @@ export default function Onboarding() {
     setVisibility({});
   }
 
-  if (step >= 2) {
+  if (step >= 3) {
     return (
       <View
         style={{
@@ -178,10 +179,14 @@ export default function Onboarding() {
             letterSpacing: -0.5,
           }}
         >
-          You're in! Home is coming next.
+          Home is coming next.
         </Text>
       </View>
     );
+  }
+
+  if (step === 2) {
+    return <CelebrationStep intent={intent} onContinue={() => setStep(3)} />;
   }
 
   if (step === 1) {
