@@ -149,7 +149,9 @@ export default function Verify() {
             collapsable={false}
             style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
           >
-            {!showSuccess && <WingMark size={HEADER_PLANE} color={coral[500]} />}
+            <View style={{ opacity: showSuccess ? 0 : 1 }}>
+              <WingMark size={HEADER_PLANE} color={coral[500]} />
+            </View>
             <Text style={{ fontFamily: fonts.display, fontSize: 20, color: ink[900] }}>
               Wing
             </Text>

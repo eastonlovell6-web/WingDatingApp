@@ -140,7 +140,7 @@ export function PlaneTrailSuccess({
     const p = progress.value;
     const cx = interpolate(p, [0, DESCEND_END], [originX, restX], Extrapolation.CLAMP);
     const cy = interpolate(p, [0, DESCEND_END], [originY, restY], Extrapolation.CLAMP);
-    const rot = interpolate(p, [0, DESCEND_END], [-6, 0], Extrapolation.CLAMP);
+    const rot = interpolate(p, [0, DESCEND_END], [-6, 82], Extrapolation.CLAMP);
     return {
       position: "absolute" as const,
       opacity: fadeInOut(p),
