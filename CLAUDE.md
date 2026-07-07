@@ -291,6 +291,7 @@ matchmaker_stats — user_id, intros_sent, intros_accepted (counts only)
   /ui                  — Button, Card, Avatar, Input, Badge
   /intro               — IntroCard, IntroNote, MatchmakerChip
   /chat                — MessageBubble, ChatInput
+  /auth                — PlaneTrailSuccess (OTP-verified success animation)
 /lib
   supabase.ts
   notifications.ts
