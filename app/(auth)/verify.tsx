@@ -144,17 +144,20 @@ export default function Verify() {
           <Pressable onPress={() => router.back()} hitSlop={12}>
             <ChevronLeft />
           </Pressable>
-          <View
-            ref={headerMarkRef}
-            collapsable={false}
-            style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
-          >
-            <View style={{ opacity: showSuccess ? 0 : 1 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <View
+              ref={headerMarkRef}
+              collapsable={false}
+              style={{ opacity: showSuccess ? 0 : 1 }}
+            >
               <WingMark size={HEADER_PLANE} color={coral[500]} />
             </View>
             <Text style={{ fontFamily: fonts.display, fontSize: 20, color: ink[900] }}>
               Wing
             </Text>
+            {/* Balances the icon + gap so the word "Wing" lands on true
+                screen-center, aligned with the trail / plane / "You're in". */}
+            <View style={{ width: HEADER_PLANE }} />
           </View>
           <View style={{ width: 24 }} />
         </View>
@@ -319,12 +322,14 @@ export default function Verify() {
         </Animated.View>
       </KeyboardAvoidingView>
 
-      <PlaneTrailSuccess
-        visible={showSuccess}
-        originX={headerX}
-        originY={headerY}
-        onFinished={() => router.replace("/(auth)/intent")}
-      />
+      {showSuccess && (
+        <PlaneTrailSuccess
+          visible={showSuccess}
+          originX={headerX}
+          originY={headerY}
+          onFinished={() => router.replace("/(auth)/intent")}
+        />
+      )}
     </View>
   );
 }
