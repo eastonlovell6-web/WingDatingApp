@@ -6,7 +6,7 @@ import type * as ImagePickerTypes from "expo-image-picker";
 const ImagePicker: typeof ImagePickerTypes | null = (() => {
   try { return require("expo-image-picker"); } catch { return null; }
 })();
-import { router, useLocalSearchParams } from "expo-router";
+import { Redirect, router, useLocalSearchParams } from "expo-router";
 import Animated, { FadeInUp } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -160,29 +160,7 @@ export default function Onboarding() {
   }
 
   if (step >= 3) {
-    return (
-      <View
-        style={{
-          flex: 1,
-          backgroundColor: surface.cream,
-          alignItems: "center",
-          justifyContent: "center",
-          paddingTop: insets.top,
-          paddingBottom: insets.bottom,
-        }}
-      >
-        <Text
-          style={{
-            fontFamily: fonts.display,
-            fontSize: 28,
-            color: ink[900],
-            letterSpacing: -0.5,
-          }}
-        >
-          Home is coming next.
-        </Text>
-      </View>
-    );
+    return <Redirect href="/(tabs)" />;
   }
 
   if (step === 2) {
