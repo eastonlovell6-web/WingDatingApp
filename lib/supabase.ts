@@ -43,3 +43,13 @@ export async function upsertUserProfile(
     .upsert({ id: userId, ...fields }, { onConflict: "id" });
   if (error) throw error;
 }
+
+export async function getUserProfile(userId: string): Promise<{ name: string | null } | null> {
+  const { data, error } = await supabase
+    .from("users")
+    .select("name")
+    .eq("id", userId)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}

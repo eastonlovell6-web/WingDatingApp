@@ -18,6 +18,7 @@ import { PhotoGrid } from "../../components/onboarding/PhotoGrid";
 import { PhotoCardPreview } from "../../components/onboarding/PhotoCardPreview";
 import { FriendVisibilityList } from "../../components/onboarding/FriendVisibilityList";
 import { CelebrationStep } from "../../components/onboarding/CelebrationStep";
+import { NameStep } from "../../components/onboarding/NameStep";
 import { useAuthStore } from "../../store/auth";
 import { uploadProfilePhoto, upsertUserProfile } from "../../lib/supabase";
 
@@ -52,7 +53,7 @@ function ChevronLeft() {
 function StepDots({ step }: { step: number }) {
   return (
     <View style={{ flexDirection: "row", gap: 6, justifyContent: "center" }}>
-      {[0, 1, 2].map((i) => (
+      {[0, 1, 2, 3].map((i) => (
         <View
           key={i}
           style={{
@@ -77,10 +78,28 @@ export default function Onboarding() {
       ? "Put a face to the matchmaker"
       : "Give your wingman something to work with";
   const [step, setStep] = useState(0);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [isSavingName, setIsSavingName] = useState(false);
   const [photos, setPhotos] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   // can_introduce defaults false for every friend — explicit opt-in only.
   const [visibility, setVisibility] = useState<Record<string, boolean>>({});
+
+  async function handleNameContinue() {
+    const trimmedFirst = firstName.trim();
+    const trimmedLast = lastName.trim();
+    if (!trimmedFirst || !trimmedLast || !user?.id) return;
+    setIsSavingName(true);
+    try {
+      await upsertUserProfile(user.id, { name: `${trimmedFirst} ${trimmedLast}` });
+      setStep(1);
+    } catch (err) {
+      console.error("Failed to save name:", err);
+    } finally {
+      setIsSavingName(false);
+    }
+  }
 
   async function openCamera() {
     if (!ImagePicker) return;
@@ -135,7 +154,7 @@ export default function Onboarding() {
         filled.map((uri) => uploadProfilePhoto(user.id, uri))
       );
       await upsertUserProfile(user.id, { photos: urls });
-      setStep(1);
+      setStep(2);
     } catch (err) {
       console.error("Photo upload failed:", err);
     } finally {
@@ -159,15 +178,32 @@ export default function Onboarding() {
     setVisibility({});
   }
 
-  if (step >= 3) {
+  if (step >= 4) {
     return <Redirect href="/(tabs)" />;
   }
 
-  if (step === 2) {
-    return <CelebrationStep intent={intent} onContinue={() => setStep(3)} />;
+  if (step === 3) {
+    return <CelebrationStep intent={intent} onContinue={() => setStep(4)} />;
   }
 
-  if (step === 1) {
+  if (step === 0) {
+    return (
+      <NameStep
+        firstName={firstName}
+        onFirstNameChange={setFirstName}
+        lastName={lastName}
+        onLastNameChange={setLastName}
+        onBack={() => {
+          if (router.canGoBack()) router.back();
+          else router.replace("/(auth)/intent");
+        }}
+        onContinue={handleNameContinue}
+        isSaving={isSavingName}
+      />
+    );
+  }
+
+  if (step === 2) {
     return (
       <View style={{ flex: 1, backgroundColor: surface.cream }}>
         {/* Top bar — back to the photos step, step dots centered */}
@@ -179,9 +215,9 @@ export default function Onboarding() {
             justifyContent: "center",
           }}
         >
-          <StepDots step={1} />
+          <StepDots step={2} />
           <Pressable
-            onPress={() => setStep(0)}
+            onPress={() => setStep(1)}
             hitSlop={12}
             style={{ position: "absolute", left: 24, top: insets.top + 13 }}
           >
@@ -197,7 +233,7 @@ export default function Onboarding() {
         >
           <Animated.View entering={FadeInUp.duration(260).delay(80)}>
             <Text style={{ ...textStyles.eyebrow, marginBottom: 8 }}>
-              Step 2 of 3
+              Step 3 of 4
             </Text>
             <Text
               style={{
@@ -237,9 +273,9 @@ export default function Onboarding() {
             backgroundColor: surface.cream,
           }}
         >
-          <Button title="Continue" onPress={() => setStep(2)} />
+          <Button title="Continue" onPress={() => setStep(3)} />
           <Pressable
-            onPress={() => setStep(2)}
+            onPress={() => setStep(3)}
             hitSlop={8}
             style={{ alignItems: "center", marginTop: 14 }}
           >
@@ -261,7 +297,7 @@ export default function Onboarding() {
 
   return (
     <View style={{ flex: 1, backgroundColor: surface.cream }}>
-      {/* Top bar — back to the intent screen, step dots centered */}
+      {/* Top bar — back to the name step, step dots centered */}
       <View
         style={{
           paddingTop: insets.top + 16,
@@ -270,12 +306,9 @@ export default function Onboarding() {
           justifyContent: "center",
         }}
       >
-        <StepDots step={0} />
+        <StepDots step={1} />
         <Pressable
-          onPress={() => {
-            if (router.canGoBack()) router.back();
-            else router.replace("/(auth)/intent");
-          }}
+          onPress={() => setStep(0)}
           hitSlop={12}
           style={{ position: "absolute", left: 24, top: insets.top + 13 }}
         >
@@ -293,7 +326,7 @@ export default function Onboarding() {
         {/* Headline */}
         <Animated.View entering={FadeInUp.duration(260).delay(80)}>
           <Text style={{ ...textStyles.eyebrow, marginBottom: 8 }}>
-            Step 1 of 3
+            Step 2 of 4
           </Text>
           <Text
             style={{

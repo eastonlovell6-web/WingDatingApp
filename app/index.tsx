@@ -56,9 +56,9 @@ const FLYER_SIZE = 30;
 // Three phases: a leisurely on-screen loop, a steady paint-sweep under the
 // word, then settle + fade. The middle is linear so the coral visibly tracks
 // the plane (not a blur). Kept slow + deliberate — it's a hero moment.
-const FLY_IN_MS = 2300;
-const SWEEP_MS = 800;
-const SETTLE_MS = 700;
+const FLY_IN_MS = 1800;
+const SWEEP_MS = 650;
+const SETTLE_MS = 550;
 
 export default function GetStarted() {
   const { width: W, height: H } = useWindowDimensions();

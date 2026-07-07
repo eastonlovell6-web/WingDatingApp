@@ -9,7 +9,6 @@ import Animated, {
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import { Avatar } from "../ui/Avatar";
-import { Badge } from "../ui/Badge";
 import { gradients } from "../../constants/colors";
 import { fonts, fontSize } from "../../constants/typography";
 import { radii, spacing } from "../../constants/spacing";
@@ -36,7 +35,7 @@ export function IntroPreviewCard({ intro, index, onPress }: IntroPreviewCardProp
   }
 
   return (
-    <Animated.View entering={FadeInDown.duration(220).delay(index * 60)}>
+    <Animated.View entering={FadeInDown.duration(250).delay(index * 80)}>
       <Pressable
         onPressIn={() => (scale.value = withSpring(0.98, spring))}
         onPressOut={() => (scale.value = withSpring(1, spring))}
@@ -53,26 +52,17 @@ export function IntroPreviewCard({ intro, index, onPress }: IntroPreviewCardProp
               gap: spacing[4],
             }}
           >
-            <View
+            <Text
               style={{
-                flexDirection: "row",
-                alignItems: "flex-start",
-                justifyContent: "space-between",
+                fontFamily: fonts.monoMedium,
+                fontSize: fontSize.xs[0],
+                letterSpacing: 1,
+                textTransform: "uppercase",
+                color: "#FFFFFF",
               }}
             >
-              <Text
-                style={{
-                  fontFamily: fonts.monoMedium,
-                  fontSize: fontSize.xs[0],
-                  letterSpacing: 1,
-                  textTransform: "uppercase",
-                  color: "#FFFFFF",
-                }}
-              >
-                Intro from {intro.matchmakerName}
-              </Text>
-              {intro.isNew && <Badge label="New intro" tone="coral" variant="solid" />}
-            </View>
+              Intro from {intro.matchmakerName}
+            </Text>
 
             <Text
               style={{
@@ -82,11 +72,12 @@ export function IntroPreviewCard({ intro, index, onPress }: IntroPreviewCardProp
                 color: "#FFFFFF",
               }}
               numberOfLines={2}
+              ellipsizeMode="tail"
             >
               {intro.note}
             </Text>
 
-            <Avatar name={intro.matchAvatarName} size={32} />
+            <Avatar name={intro.matchAvatarName} size={32} imageUri={intro.matchAvatarUri} />
           </LinearGradient>
         </Animated.View>
       </Pressable>

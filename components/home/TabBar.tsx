@@ -4,7 +4,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Circle, Line, Path } from "react-native-svg";
 import * as Haptics from "expo-haptics";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { WingMark } from "../ui/WingMark";
 import { coral, gradients, ink, shadowTint, surface } from "../../constants/colors";
 import { fonts, fontSize } from "../../constants/typography";
 import { radii, spacing } from "../../constants/spacing";
@@ -16,19 +15,37 @@ const TAB_LABELS: Record<string, string> = {
   profile: "You",
 };
 
+// Floating pill height + how far the FAB overhangs above it + its gap from
+// the screen edge — scrollable content must reserve at least this much
+// bottom space or the tab bar/FAB sits on top of (and clips) real content.
+const TAB_BAR_HEIGHT = 72;
+const FAB_OVERHANG = 28;
+const TAB_BAR_BOTTOM_GAP = spacing[2];
+export const TAB_BAR_CLEARANCE = TAB_BAR_HEIGHT + FAB_OVERHANG + TAB_BAR_BOTTOM_GAP;
+
 function TabIcon({ name, color, size = 22 }: { name: string; color: string; size?: number }) {
   switch (name) {
     case "index":
-      return <WingMark size={size} color={color} />;
-    case "intros":
+      // Distinct from the WingMark paper-plane logo in the header — a plain
+      // home glyph so the tab bar doesn't visually repeat the brand mark.
       return (
         <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
           <Path
-            d="M12 20s-7-4.35-9.5-8.5C1 8.2 2.4 5 5.6 5c1.8 0 3.2 1 4.4 2.6C11.2 6 12.6 5 14.4 5 17.6 5 19 8.2 21.5 11.5 19 15.65 12 20 12 20Z"
+            d="M4 11.5 12 4l8 7.5M6 10v9h5v-5h2v5h5v-9"
             stroke={color}
             strokeWidth={1.8}
+            strokeLinecap="round"
             strokeLinejoin="round"
           />
+        </Svg>
+      );
+    case "intros":
+      // Two overlapping circles — a mutual connection, not a heart (avoids
+      // swipe-app iconography that clashes with Wing's positioning).
+      return (
+        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+          <Circle cx={9.5} cy={12} r={6.5} stroke={color} strokeWidth={1.8} />
+          <Circle cx={14.5} cy={12} r={6.5} stroke={color} strokeWidth={1.8} />
         </Svg>
       );
     case "chats":
