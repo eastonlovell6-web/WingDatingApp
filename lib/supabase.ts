@@ -44,10 +44,21 @@ export async function upsertUserProfile(
   if (error) throw error;
 }
 
-export async function getUserProfile(userId: string): Promise<{ name: string | null } | null> {
+export interface BioPrompt {
+  question: string;
+  answer: string;
+}
+
+export interface UserProfileRow {
+  name: string | null;
+  photos: string[] | null;
+  bio_prompts: BioPrompt[] | null;
+}
+
+export async function getUserProfile(userId: string): Promise<UserProfileRow | null> {
   const { data, error } = await supabase
     .from("users")
-    .select("name")
+    .select("name, photos, bio_prompts")
     .eq("id", userId)
     .maybeSingle();
   if (error) throw error;

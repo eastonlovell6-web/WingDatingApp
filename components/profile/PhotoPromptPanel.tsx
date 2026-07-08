@@ -1,16 +1,25 @@
 import { useState } from "react";
-import { Image, LayoutChangeEvent, Pressable, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Image,
+  LayoutChangeEvent,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import * as Haptics from "expo-haptics";
 import Svg, { Path } from "react-native-svg";
 import { Button } from "../ui/Button";
-import { ink, shadowTint, surface } from "../../constants/colors";
+import { coral, ink, shadowTint, surface } from "../../constants/colors";
 import { fonts, fontSize } from "../../constants/typography";
 import { radii, spacing } from "../../constants/spacing";
-import type { ProfilePhoto, ProfilePrompt } from "./mockProfile";
+import type { ProfilePrompt } from "./mockProfile";
 
-const GRID_COLUMNS = 3;
-const GRID_SLOTS = 6;
-const GRID_GAP = spacing[2];
+const MAX_PHOTOS = 6;
 const MAX_PROMPTS = 3;
 
 function PlusIcon({ size = 20, color = ink[300] }: { size?: number; color?: string }) {
@@ -34,81 +43,151 @@ function PencilIcon({ size = 16, color = ink[500] }: { size?: number; color?: st
   );
 }
 
-function PhotoGrid({ photos, onAddPress }: { photos: ProfilePhoto[]; onAddPress?: () => void }) {
-  const [gridWidth, setGridWidth] = useState(0);
-  const tileWidth = gridWidth > 0 ? (gridWidth - GRID_GAP * (GRID_COLUMNS - 1)) / GRID_COLUMNS : 0;
-
-  function handleLayout(e: LayoutChangeEvent) {
-    setGridWidth(e.nativeEvent.layout.width);
-  }
-
-  const slots = Array.from({ length: GRID_SLOTS }, (_, i) => photos[i] ?? null);
-
+function CarouselDots({ count, activeIndex }: { count: number; activeIndex: number }) {
+  if (count <= 1) return null;
   return (
-    <View onLayout={handleLayout} style={{ flexDirection: "row", flexWrap: "wrap", gap: GRID_GAP }}>
-      {tileWidth > 0 &&
-        slots.map((photo, i) =>
-          photo ? (
-            <View key={photo.id} style={{ width: tileWidth, aspectRatio: 4 / 5 }}>
-              <Image
-                source={{ uri: photo.uri }}
-                style={{ width: "100%", height: "100%", borderRadius: radii.md }}
-              />
-              {photo.isMain && (
-                <View
-                  style={{
-                    position: "absolute",
-                    top: spacing[2] / 2,
-                    left: spacing[2] / 2,
-                    paddingHorizontal: 8,
-                    paddingVertical: 3,
-                    borderRadius: radii.sm,
-                    backgroundColor: "rgba(26, 20, 18, 0.55)",
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontFamily: fonts.monoMedium,
-                      fontSize: fontSize["2xs"][0],
-                      letterSpacing: 1,
-                      textTransform: "uppercase",
-                      color: "#FFFFFF",
-                    }}
-                  >
-                    Main
-                  </Text>
-                </View>
-              )}
-            </View>
-          ) : (
-            <Pressable
-              key={`empty-${i}`}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                onAddPress?.();
-              }}
-              accessibilityRole="button"
-              accessibilityLabel="Add photo"
-              style={{
-                width: tileWidth,
-                aspectRatio: 4 / 5,
-                borderRadius: radii.md,
-                borderWidth: 1.5,
-                borderColor: ink[300],
-                borderStyle: "dashed",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <PlusIcon />
-            </Pressable>
-          )
-        )}
+    <View style={{ flexDirection: "row", gap: 6, justifyContent: "center" }}>
+      {Array.from({ length: count }, (_, i) => (
+        <View
+          key={i}
+          style={{
+            width: i === activeIndex ? 20 : 6,
+            height: 6,
+            borderRadius: 3,
+            backgroundColor: i === activeIndex ? coral[500] : ink[200],
+          }}
+        />
+      ))}
     </View>
   );
 }
 
-function PromptCard({ prompt, onEditPress }: { prompt: ProfilePrompt; onEditPress?: (id: string) => void }) {
+function PhotoCarousel({
+  photos,
+  uploadingIndex,
+  onSlotPress,
+}: {
+  photos: string[];
+  uploadingIndex?: number;
+  onSlotPress: (index: number) => void;
+}) {
+  const [containerWidth, setContainerWidth] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  function handleLayout(e: LayoutChangeEvent) {
+    setContainerWidth(e.nativeEvent.layout.width);
+  }
+
+  function handleMomentumScrollEnd(e: NativeSyntheticEvent<NativeScrollEvent>) {
+    if (!containerWidth) return;
+    setActiveIndex(Math.round(e.nativeEvent.contentOffset.x / containerWidth));
+  }
+
+  // One trailing "add" slot (represented as null) — up to MAX_PHOTOS total.
+  const slots: (string | null)[] = photos.length < MAX_PHOTOS ? [...photos, null] : photos;
+
+  return (
+    <View onLayout={handleLayout} style={{ gap: spacing[2] }}>
+      {containerWidth > 0 && (
+        <ScrollView
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={handleMomentumScrollEnd}
+        >
+          {slots.map((uri, i) => {
+            const isUploading = uploadingIndex === i;
+            return (
+              <Pressable
+                key={uri ?? `add-${i}`}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  onSlotPress(i);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={uri ? (i === 0 ? "Main photo, tap for options" : "Photo, tap for options") : "Add photo"}
+                style={{ width: containerWidth, aspectRatio: 4 / 5, padding: 2 }}
+              >
+                {uri ? (
+                  <>
+                    <Image
+                      source={{ uri }}
+                      style={{ width: "100%", height: "100%", borderRadius: radii.lg }}
+                    />
+                    {i === 0 && (
+                      <View
+                        style={{
+                          position: "absolute",
+                          top: spacing[2] + 2,
+                          left: spacing[2] + 2,
+                          paddingHorizontal: 10,
+                          paddingVertical: 4,
+                          borderRadius: radii.sm,
+                          backgroundColor: "rgba(26, 20, 18, 0.55)",
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontFamily: fonts.monoMedium,
+                            fontSize: fontSize["2xs"][0],
+                            letterSpacing: 1,
+                            textTransform: "uppercase",
+                            color: "#FFFFFF",
+                          }}
+                        >
+                          Main
+                        </Text>
+                      </View>
+                    )}
+                    {isUploading && (
+                      <View
+                        style={[
+                          StyleSheet.absoluteFillObject,
+                          {
+                            margin: 2,
+                            borderRadius: radii.lg,
+                            backgroundColor: "rgba(26, 20, 18, 0.35)",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          },
+                        ]}
+                      >
+                        <ActivityIndicator color="#FFFFFF" />
+                      </View>
+                    )}
+                  </>
+                ) : (
+                  <View
+                    style={{
+                      flex: 1,
+                      borderRadius: radii.lg,
+                      borderWidth: 1.5,
+                      borderColor: ink[300],
+                      borderStyle: "dashed",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {isUploading ? <ActivityIndicator color={coral[500]} /> : <PlusIcon size={32} />}
+                  </View>
+                )}
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      )}
+      <CarouselDots count={slots.length} activeIndex={activeIndex} />
+    </View>
+  );
+}
+
+function PromptCard({
+  prompt,
+  onEditPress,
+}: {
+  prompt: ProfilePrompt;
+  onEditPress: () => void;
+}) {
   return (
     <View
       style={{
@@ -138,7 +217,7 @@ function PromptCard({ prompt, onEditPress }: { prompt: ProfilePrompt; onEditPres
         <Pressable
           onPress={() => {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            onEditPress?.(prompt.id);
+            onEditPress();
           }}
           hitSlop={8}
           accessibilityRole="button"
@@ -163,27 +242,29 @@ function PromptCard({ prompt, onEditPress }: { prompt: ProfilePrompt; onEditPres
 }
 
 interface PhotoPromptPanelProps {
-  photos: ProfilePhoto[];
+  photos: string[];
   prompts: ProfilePrompt[];
-  onAddPhotoPress?: () => void;
-  onEditPromptPress?: (id: string) => void;
-  onAddPromptPress?: () => void;
+  uploadingPhotoIndex?: number;
+  onPhotoSlotPress: (index: number) => void;
+  onEditPromptPress: (index: number) => void;
+  onAddPromptPress: () => void;
 }
 
 export function PhotoPromptPanel({
   photos,
   prompts,
-  onAddPhotoPress,
+  uploadingPhotoIndex,
+  onPhotoSlotPress,
   onEditPromptPress,
   onAddPromptPress,
 }: PhotoPromptPanelProps) {
   return (
     <View style={{ gap: spacing[6] }}>
-      <PhotoGrid photos={photos} onAddPress={onAddPhotoPress} />
+      <PhotoCarousel photos={photos} uploadingIndex={uploadingPhotoIndex} onSlotPress={onPhotoSlotPress} />
 
       <View style={{ gap: spacing[4] }}>
-        {prompts.map((prompt) => (
-          <PromptCard key={prompt.id} prompt={prompt} onEditPress={onEditPromptPress} />
+        {prompts.map((prompt, i) => (
+          <PromptCard key={i} prompt={prompt} onEditPress={() => onEditPromptPress(i)} />
         ))}
 
         {prompts.length < MAX_PROMPTS && (

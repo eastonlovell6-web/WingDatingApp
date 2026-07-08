@@ -1,14 +1,22 @@
-export interface ProfilePhoto {
-  id: string;
-  uri: string;
-  isMain?: boolean;
-}
-
 export interface ProfilePrompt {
-  id: string;
   question: string;
   answer: string;
 }
+
+// Fixed prompt bank — users pick one via the "Shuffle" button rather than
+// writing their own question, so every question in the app reads consistently.
+export const PRESET_PROMPT_QUESTIONS: string[] = [
+  "I will never turn down...",
+  "The last thing that made me laugh out loud was...",
+  "I'm weirdly competitive about...",
+  "Ask me about the time I...",
+  "I could talk for an hour about...",
+  "A skill I'm proud of that has zero practical use...",
+  "My friends would describe me in three words as...",
+  "The most spontaneous thing I've ever done was...",
+  "I'm still figuring out...",
+  "If you came over, you'd immediately notice...",
+];
 
 export interface MatchmakerBadge {
   id: string;
@@ -23,32 +31,31 @@ export interface PrivacySettings {
   pausedNewIntros: boolean;
 }
 
-// TODO: replace with the `users` row + storage bucket lookup for the signed-in user.
+// Demo defaults shown only until the signed-in user's real `users` row has
+// its own photos/prompts — see profile.tsx, which prefers real data as soon
+// as any exists.
 export const MOCK_PROFILE_USER = {
   name: "Easton Lovell",
+  // TODO: age/school/location aren't columns on `users` yet — this stays a
+  // placeholder until that data model exists.
   meta: "22 · BYU · Provo, UT",
-  avatarUri: undefined as string | undefined,
 };
 
-// TODO: replace with `users.photos[]` once photo upload/storage is wired.
-export const MOCK_PHOTOS: ProfilePhoto[] = [
-  { id: "1", uri: "https://i.pravatar.cc/400?img=51", isMain: true },
-  { id: "2", uri: "https://i.pravatar.cc/400?img=52" },
-  { id: "3", uri: "https://i.pravatar.cc/400?img=53" },
-  { id: "4", uri: "https://i.pravatar.cc/400?img=54" },
+export const MOCK_PHOTOS: string[] = [
+  "https://i.pravatar.cc/400?img=51",
+  "https://i.pravatar.cc/400?img=52",
+  "https://i.pravatar.cc/400?img=53",
+  "https://i.pravatar.cc/400?img=54",
 ];
 
-// TODO: replace with `users.bio_prompts[]`.
 export const MOCK_PROMPTS: ProfilePrompt[] = [
   {
-    id: "1",
-    question: "A shameless plug for one of my friends",
-    answer: "My roommate makes the best breakfast burritos in Provo. Ask about them.",
+    question: "The last thing that made me laugh out loud was...",
+    answer: "My roommate's breakfast burrito review turning into a five-star Yelp post.",
   },
   {
-    id: "2",
-    question: "Unpopular opinion",
-    answer: "Cereal is a soup.",
+    question: "I'm weirdly competitive about...",
+    answer: "Cereal-pouring accuracy. Zero spills, every time.",
   },
 ];
 
