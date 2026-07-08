@@ -1,4 +1,5 @@
 import { Text, View } from "react-native";
+import Animated, { FadeIn, FadeInDown, ZoomIn } from "react-native-reanimated";
 import { Avatar } from "../ui/Avatar";
 import { Badge } from "../ui/Badge";
 import { ink, shadowTint, surface } from "../../constants/colors";
@@ -8,17 +9,25 @@ import type { SentIntro } from "./mockSentIntros";
 
 interface SentIntroRowProps {
   intro: SentIntro;
+  index: number;
 }
 
 const AVATAR_SIZE = 40;
 const AVATAR_OVERLAP = AVATAR_SIZE * 0.22;
 
+// Spaced out slower than the Home feed's card stagger (80ms/250ms duration)
+// so the Intros list reads distinctly from the Home screen it shares a
+// pattern with.
+const ROW_STAGGER_MS = 130;
+const ROW_ENTER_DURATION_MS = 300;
+
 function formatSentDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-export function SentIntroRow({ intro }: SentIntroRowProps) {
+export function SentIntroRow({ intro, index }: SentIntroRowProps) {
   const isMatched = intro.status === "matched";
+  const rowDelay = index * ROW_STAGGER_MS;
 
   // The initials-bearing avatar always renders on top: cropping a photo at
   // the overlap reads fine, but cropping initials text does not. If both (or
@@ -32,7 +41,8 @@ export function SentIntroRow({ intro }: SentIntroRowProps) {
     : { name: intro.personBName, uri: intro.personBAvatarUri, tintIndex: 1 };
 
   return (
-    <View
+    <Animated.View
+      entering={FadeInDown.duration(ROW_ENTER_DURATION_MS).delay(rowDelay)}
       style={{
         flexDirection: "row",
         alignItems: "center",
@@ -48,8 +58,11 @@ export function SentIntroRow({ intro }: SentIntroRowProps) {
       }}
     >
       <View style={{ flexDirection: "row", width: AVATAR_SIZE * 2 - AVATAR_OVERLAP }}>
-        <Avatar name={back.name} size={AVATAR_SIZE} index={back.tintIndex} imageUri={back.uri} />
-        <View
+        <Animated.View entering={FadeIn.duration(180).delay(rowDelay + 60)}>
+          <Avatar name={back.name} size={AVATAR_SIZE} index={back.tintIndex} imageUri={back.uri} />
+        </Animated.View>
+        <Animated.View
+          entering={FadeIn.duration(180).delay(rowDelay + 160)}
           style={{
             marginLeft: -AVATAR_OVERLAP,
             borderRadius: radii.pill,
@@ -58,7 +71,7 @@ export function SentIntroRow({ intro }: SentIntroRowProps) {
           }}
         >
           <Avatar name={front.name} size={AVATAR_SIZE} index={front.tintIndex} imageUri={front.uri} />
-        </View>
+        </Animated.View>
       </View>
 
       <View style={{ flex: 1, gap: 2 }}>
@@ -74,11 +87,13 @@ export function SentIntroRow({ intro }: SentIntroRowProps) {
       </View>
 
       {isMatched ? (
-        <Badge label="Matched" tone="mint" variant="outline" />
+        <Animated.View entering={ZoomIn.duration(320).delay(rowDelay + 220).springify().damping(9)}>
+          <Badge label="Matched" tone="mint" variant="outline" />
+        </Animated.View>
       ) : (
         <Badge label="Pending" tone="butter" variant="outline" textColor={ink[900]} />
       )}
-    </View>
+    </Animated.View>
   );
 }
 

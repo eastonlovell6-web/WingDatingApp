@@ -31,7 +31,7 @@ export function EmptyChatsState() {
           textAlign: "center",
         }}
       >
-        No conversations yet
+        Nothing here yet
       </Text>
       <Text
         style={{
@@ -42,7 +42,7 @@ export function EmptyChatsState() {
           textAlign: "center",
         }}
       >
-        Accept an intro to get one started — chat unlocks once you both say yes.
+        Chats only open once two people both say yes.
       </Text>
       <Button
         title="See pending intros"

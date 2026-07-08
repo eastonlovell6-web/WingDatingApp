@@ -16,8 +16,8 @@ export function SentIntroList({ intros, onMakeIntroPress }: SentIntroListProps) 
 
   return (
     <View style={{ gap: spacing[4] }}>
-      {intros.map((intro) => (
-        <SentIntroRow key={intro.id} intro={intro} />
+      {intros.map((intro, index) => (
+        <SentIntroRow key={intro.id} intro={intro} index={index} />
       ))}
     </View>
   );

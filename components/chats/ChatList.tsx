@@ -15,8 +15,8 @@ export function ChatList({ chats }: ChatListProps) {
 
   return (
     <View style={{ gap: spacing[4] }}>
-      {chats.map((chat) => (
-        <ChatRow key={chat.id} chat={chat} />
+      {chats.map((chat, index) => (
+        <ChatRow key={chat.id} chat={chat} index={index} />
       ))}
     </View>
   );

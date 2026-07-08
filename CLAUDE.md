@@ -289,7 +289,7 @@ matchmaker_stats — user_id, intros_sent, intros_accepted (counts only)
     note.tsx           — step 2: write note + send
   /request/[friendId].tsx
 /components
-  /ui                  — Button, Card, Avatar, Input, Badge, TruncatedText (word-safe line-clamped text; used by any list/card preview instead of raw numberOfLines+ellipsizeMode)
+  /ui                  — Button, Card, Avatar, Input, Badge, TruncatedText (word-safe line-clamped text; used by any list/card preview instead of raw numberOfLines+ellipsizeMode), TabGlyphs (IntrosGlyph/ChatsGlyph — shared with TabBar so screen-header icons match the tab bar exactly)
   /intro               — IntroCard, IntroNote, MatchmakerChip
   /intros              — SentIntroStats, SentIntroRow, SentIntroList, EmptySentIntrosState, mockSentIntros (Intros tab: sent-history, not received intros)
   /chats               — ChatList, ChatRow, EmptyChatsState, mockChats (Chats tab: list of active conversations)

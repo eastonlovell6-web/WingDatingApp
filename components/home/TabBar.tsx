@@ -7,6 +7,7 @@ import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { coral, gradients, ink, shadowTint, surface } from "../../constants/colors";
 import { fonts, fontSize } from "../../constants/typography";
 import { radii, spacing } from "../../constants/spacing";
+import { ChatsGlyph, IntrosGlyph } from "../ui/TabGlyphs";
 
 const TAB_LABELS: Record<string, string> = {
   index: "For You",
@@ -42,23 +43,9 @@ function TabIcon({ name, color, size = 22 }: { name: string; color: string; size
     case "intros":
       // Two overlapping circles — a mutual connection, not a heart (avoids
       // swipe-app iconography that clashes with Wing's positioning).
-      return (
-        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-          <Circle cx={9.5} cy={12} r={6.5} stroke={color} strokeWidth={1.8} />
-          <Circle cx={14.5} cy={12} r={6.5} stroke={color} strokeWidth={1.8} />
-        </Svg>
-      );
+      return <IntrosGlyph size={size} color={color} />;
     case "chats":
-      return (
-        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-          <Path
-            d="M4 5h16v10H8l-4 4V5Z"
-            stroke={color}
-            strokeWidth={1.8}
-            strokeLinejoin="round"
-          />
-        </Svg>
-      );
+      return <ChatsGlyph size={size} color={color} />;
     case "profile":
       return (
         <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">

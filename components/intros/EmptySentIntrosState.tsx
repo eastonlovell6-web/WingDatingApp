@@ -30,7 +30,7 @@ export function EmptySentIntrosState({ onMakeIntroPress }: EmptySentIntrosStateP
           textAlign: "center",
         }}
       >
-        No intros sent yet
+        You haven&rsquo;t set anyone up yet.
       </Text>
       <Text
         style={{
@@ -41,7 +41,7 @@ export function EmptySentIntrosState({ onMakeIntroPress }: EmptySentIntrosStateP
           textAlign: "center",
         }}
       >
-        You could be someone&rsquo;s wingman — introduce two friends who&rsquo;d click.
+        Somebody in your contacts is somebody&rsquo;s answer.
       </Text>
       <Button
         title="Make an intro"
