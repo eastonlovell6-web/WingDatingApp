@@ -85,12 +85,13 @@ export function SentIntroStats({ intros }: SentIntroStatsProps) {
 
   return (
     <View style={{ flexDirection: "row", gap: spacing[8] }}>
-      <StatTile value={sentCount} label="Intros sent" color={coral[500]} />
       <StatTile
         value={matchedCount}
         label="Matched"
+        color={coral[500]}
         footnote={matchedCount > 0 ? "Not bad, cupid." : undefined}
       />
+      <StatTile value={sentCount} label="Intros sent" />
     </View>
   );
 }

@@ -1,9 +1,9 @@
 import { Pressable, Text, View } from "react-native";
 import { router } from "expo-router";
 import Animated, {
+  FadeIn,
   FadeInDown,
   SlideInLeft,
-  ZoomIn,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -11,7 +11,7 @@ import Animated, {
 import * as Haptics from "expo-haptics";
 import { Avatar } from "../ui/Avatar";
 import { TruncatedText } from "../ui/TruncatedText";
-import { coral, ink, shadowTint, surface } from "../../constants/colors";
+import { coral, ink, plum, shadowTint, surface } from "../../constants/colors";
 import { fonts, fontSize } from "../../constants/typography";
 import { radii, spacing } from "../../constants/spacing";
 import { formatRelativeTime } from "../../lib/format";
@@ -88,7 +88,7 @@ export function ChatRow({ chat, index }: ChatRowProps) {
                 </Text>
                 {chat.unread && (
                   <Animated.View
-                    entering={ZoomIn.duration(280).delay(rowDelay + 260).springify().damping(9)}
+                    entering={FadeIn.duration(220).delay(rowDelay + 260)}
                     style={{ width: 8, height: 8, borderRadius: radii.pill, backgroundColor: coral[500] }}
                   />
                 )}
@@ -112,7 +112,7 @@ export function ChatRow({ chat, index }: ChatRowProps) {
                   fontSize: fontSize["2xs"][0],
                   letterSpacing: 1,
                   textTransform: "uppercase",
-                  color: ink[500],
+                  color: plum[500],
                 }}
                 numberOfLines={1}
               >

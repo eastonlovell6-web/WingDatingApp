@@ -1,8 +1,8 @@
 import { Text, View } from "react-native";
-import Animated, { FadeIn, FadeInDown, ZoomIn } from "react-native-reanimated";
+import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { Avatar } from "../ui/Avatar";
 import { Badge } from "../ui/Badge";
-import { ink, shadowTint, surface } from "../../constants/colors";
+import { ink, mint, shadowTint, surface } from "../../constants/colors";
 import { fonts, fontSize } from "../../constants/typography";
 import { radii, spacing } from "../../constants/spacing";
 import type { SentIntro } from "./mockSentIntros";
@@ -87,8 +87,8 @@ export function SentIntroRow({ intro, index }: SentIntroRowProps) {
       </View>
 
       {isMatched ? (
-        <Animated.View entering={ZoomIn.duration(320).delay(rowDelay + 220).springify().damping(9)}>
-          <Badge label="Matched" tone="mint" variant="outline" />
+        <Animated.View entering={FadeIn.duration(220).delay(rowDelay + 220)}>
+          <Badge label="Matched" tone="mint" variant="outline" textColor={mint[700]} />
         </Animated.View>
       ) : (
         <Badge label="Pending" tone="butter" variant="outline" textColor={ink[900]} />
