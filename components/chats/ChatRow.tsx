@@ -3,11 +3,11 @@ import { router } from "expo-router";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import { Avatar } from "../ui/Avatar";
-import { Badge } from "../ui/Badge";
+import { TruncatedText } from "../ui/TruncatedText";
 import { coral, ink, shadowTint, surface } from "../../constants/colors";
 import { fonts, fontSize } from "../../constants/typography";
 import { radii, spacing } from "../../constants/spacing";
-import { formatRelativeTime, truncateAtWord } from "../../lib/format";
+import { formatRelativeTime } from "../../lib/format";
 import type { ChatPreview } from "./mockChats";
 
 interface ChatRowProps {
@@ -15,7 +15,6 @@ interface ChatRowProps {
 }
 
 const spring = { mass: 0.4, damping: 12, stiffness: 220 };
-const PREVIEW_MAX_LENGTH = 52;
 
 export function ChatRow({ chat }: ChatRowProps) {
   const scale = useSharedValue(1);
@@ -74,15 +73,25 @@ export function ChatRow({ chat }: ChatRowProps) {
             </Text>
           </View>
 
-          <Text
+          <TruncatedText
             style={{ fontFamily: fonts.body, fontSize: fontSize.sm[0], color: ink[500] }}
             numberOfLines={1}
-            ellipsizeMode="tail"
           >
-            {truncateAtWord(chat.lastMessage, PREVIEW_MAX_LENGTH)}
-          </Text>
+            {chat.lastMessage}
+          </TruncatedText>
 
-          <Badge label={`Introduced by ${chat.introducedByName}`} tone="plum" variant="solid" />
+          <Text
+            style={{
+              fontFamily: fonts.monoMedium,
+              fontSize: fontSize["2xs"][0],
+              letterSpacing: 1,
+              textTransform: "uppercase",
+              color: ink[500],
+            }}
+            numberOfLines={1}
+          >
+            ↳ Introduced by {chat.introducedByName}
+          </Text>
         </View>
       </Animated.View>
     </Pressable>

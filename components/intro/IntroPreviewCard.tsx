@@ -9,6 +9,7 @@ import Animated, {
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import { Avatar } from "../ui/Avatar";
+import { TruncatedText } from "../ui/TruncatedText";
 import { gradients } from "../../constants/colors";
 import { fonts, fontSize } from "../../constants/typography";
 import { radii, spacing } from "../../constants/spacing";
@@ -64,7 +65,7 @@ export function IntroPreviewCard({ intro, index, onPress }: IntroPreviewCardProp
               Intro from {intro.matchmakerName}
             </Text>
 
-            <Text
+            <TruncatedText
               style={{
                 fontFamily: fonts.display,
                 fontSize: fontSize.xl[0],
@@ -72,10 +73,9 @@ export function IntroPreviewCard({ intro, index, onPress }: IntroPreviewCardProp
                 color: "#FFFFFF",
               }}
               numberOfLines={2}
-              ellipsizeMode="tail"
             >
               {intro.note}
-            </Text>
+            </TruncatedText>
 
             <Avatar name={intro.matchAvatarName} size={32} imageUri={intro.matchAvatarUri} />
           </LinearGradient>

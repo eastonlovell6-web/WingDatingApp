@@ -21,12 +21,3 @@ export function formatRelativeTime(iso: string): string {
   if (dayDiff < 7) return date.toLocaleDateString("en-US", { weekday: "short" });
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
-
-/** Truncates on the nearest word boundary instead of mid-word, appending an ellipsis. */
-export function truncateAtWord(text: string, maxLength: number): string {
-  if (text.length <= maxLength) return text;
-  const sliced = text.slice(0, maxLength);
-  const lastSpace = sliced.lastIndexOf(" ");
-  const cut = lastSpace > 0 ? sliced.slice(0, lastSpace) : sliced;
-  return `${cut}…`;
-}

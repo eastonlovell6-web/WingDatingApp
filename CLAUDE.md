@@ -289,7 +289,7 @@ matchmaker_stats — user_id, intros_sent, intros_accepted (counts only)
     note.tsx           — step 2: write note + send
   /request/[friendId].tsx
 /components
-  /ui                  — Button, Card, Avatar, Input, Badge
+  /ui                  — Button, Card, Avatar, Input, Badge, TruncatedText (word-safe line-clamped text; used by any list/card preview instead of raw numberOfLines+ellipsizeMode)
   /intro               — IntroCard, IntroNote, MatchmakerChip
   /intros              — SentIntroStats, SentIntroRow, SentIntroList, EmptySentIntrosState, mockSentIntros (Intros tab: sent-history, not received intros)
   /chats               — ChatList, ChatRow, EmptyChatsState, mockChats (Chats tab: list of active conversations)
@@ -299,7 +299,7 @@ matchmaker_stats — user_id, intros_sent, intros_accepted (counts only)
 /lib
   supabase.ts
   notifications.ts    — formatMessageNotification (push copy convention; not yet wired to an Edge Function)
-  format.ts            — formatRelativeTime, truncateAtWord (shared by Chats/Intros list rows)
+  format.ts            — formatRelativeTime (shared by Chats/Intros list rows)
   haptics.ts
 /store
   auth.ts
