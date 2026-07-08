@@ -18,9 +18,11 @@ interface BadgeProps {
   label: string;
   variant?: Variant;
   tone?: Tone;
+  /** Override the label color — e.g. PENDING is butter outline + dark text, not butter text. */
+  textColor?: string;
 }
 
-export function Badge({ label, variant = "solid", tone = "coral" }: BadgeProps) {
+export function Badge({ label, variant = "solid", tone = "coral", textColor }: BadgeProps) {
   const t = tones[tone];
   const isSolid = variant === "solid";
 
@@ -42,7 +44,7 @@ export function Badge({ label, variant = "solid", tone = "coral" }: BadgeProps) 
           fontSize: fontSize["2xs"][0],
           letterSpacing: 1,
           textTransform: "uppercase",
-          color: isSolid ? t.text : t.border,
+          color: textColor ?? (isSolid ? t.text : t.border),
         }}
       >
         {label}

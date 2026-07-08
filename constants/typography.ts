@@ -37,6 +37,7 @@ export const weights = {
   displaySemibold: '600',
   bodyMedium: '600',
   bodyRegular: '400',
+  monoMedium: '500',
 } as const;
 
 /**
@@ -103,7 +104,7 @@ export const textStyles = {
   },
   stat: {
     fontFamily: fonts.monoMedium,
-    fontWeight: weights.bodyMedium,
+    fontWeight: weights.monoMedium,
     fontSize: fontSize['4xl'][0],
     lineHeight: fontSize['4xl'][1],
     color: ink[900],

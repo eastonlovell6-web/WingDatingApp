@@ -280,9 +280,10 @@ matchmaker_stats — user_id, intros_sent, intros_accepted (counts only)
     index.tsx          — home feed (incoming intros + friends row)
     discover.tsx       — friends-of-friends browse
     intros.tsx         — matchmaker sent intros history
+    chats.tsx          — Chats tab: list of active conversations (mutually-accepted intros)
     profile.tsx        — own profile + settings
   /intro/[id].tsx      — full intro card screen
-  /chat/[id].tsx       — chat screen
+  /chat/[id].tsx       — chat thread screen (message bubbles + input; no read receipts, no typing indicator)
   /matchmaker
     select.tsx         — step 1: select two friends
     note.tsx           — step 2: write note + send
@@ -290,11 +291,15 @@ matchmaker_stats — user_id, intros_sent, intros_accepted (counts only)
 /components
   /ui                  — Button, Card, Avatar, Input, Badge
   /intro               — IntroCard, IntroNote, MatchmakerChip
-  /chat                — MessageBubble, ChatInput
+  /intros              — SentIntroStats, SentIntroRow, SentIntroList, EmptySentIntrosState, mockSentIntros (Intros tab: sent-history, not received intros)
+  /chats               — ChatList, ChatRow, EmptyChatsState, mockChats (Chats tab: list of active conversations)
+  /chat                — MessageBubble, ChatInput, mockMessages (chat thread screen use)
   /auth                — PlaneTrailSuccess (OTP-verified success animation)
+  /dev                 — DevNav (dev-only screen jumper, __DEV__ gated, mounted in app/_layout.tsx)
 /lib
   supabase.ts
-  notifications.ts
+  notifications.ts    — formatMessageNotification (push copy convention; not yet wired to an Edge Function)
+  format.ts            — formatRelativeTime, truncateAtWord (shared by Chats/Intros list rows)
   haptics.ts
 /store
   auth.ts

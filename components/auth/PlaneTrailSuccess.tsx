@@ -38,19 +38,21 @@ const STREAKS = [
   { phase: 0.83, x: 10, w: 3, h: 38 },
 ];
 
-// Faint light bands that scroll upward *inside* the trail — texture that makes
-// the pill itself look like it's rushing past the plane. The color stops are
-// vertically periodic (both ends transparent, evenly spaced), so translating
-// the overlay up by exactly one period loops with no visible seam.
-const FLOW_BANDS = 10;
-const FLOW_OVERLAY_H = 640; // taller than any trail so it always covers the pill
+// A soft warm-coral highlight that swells and fades upward *inside* the trail —
+// texture that makes the pill look like it's rushing past the plane without
+// reading as hard stripes. Few, wide bands give long gentle ramps, so the light
+// rolls through as a fluid coral gradient rather than sharp lines. The color
+// stops stay vertically periodic (both ends transparent, evenly spaced), so
+// translating the overlay up by exactly one period loops with no visible seam.
+const FLOW_BANDS = 3;
+const FLOW_OVERLAY_H = 720; // taller than any trail so it always covers the pill
 const FLOW_PERIOD = FLOW_OVERLAY_H / FLOW_BANDS; // translate distance per loop
-const FLOW_MS = 720; // one period of upward drift
+const FLOW_MS = 2000; // one period of upward drift — slow so it reads as fluid
 const FLOW_COLORS: string[] = [];
 const FLOW_LOCATIONS: number[] = [];
 for (let i = 0; i <= FLOW_BANDS * 2; i++) {
   FLOW_LOCATIONS.push(i / (FLOW_BANDS * 2));
-  FLOW_COLORS.push(i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.18)");
+  FLOW_COLORS.push(i % 2 === 0 ? "transparent" : "rgba(255,196,170,0.34)");
 }
 
 // Three phases: descend from the header leaving a trail, hold with an idle
@@ -326,6 +328,12 @@ export function PlaneTrailSuccess({
       // Fade in on entrance, then stay solid — it exits by flying off-screen,
       // not by fading.
       opacity: interpolate(p, [0, 0.03], [0, 1], Extrapolation.CLAMP),
+      // Warm drop shadow lifts the white plane off the coral trail so it stays
+      // legible against a same-family background.
+      shadowColor: "#5A1E14",
+      shadowOpacity: 0.32,
+      shadowRadius: 8,
+      shadowOffset: { width: 0, height: 3 },
       transform: [
         { translateX: cx - LARGE_PLANE / 2 },
         { translateY: cy - LARGE_PLANE / 2 + bobY.value },
@@ -368,7 +376,7 @@ export function PlaneTrailSuccess({
       ))}
 
       <Animated.View style={planeStyle}>
-        <WingMark size={LARGE_PLANE} color={coral[500]} />
+        <WingMark size={LARGE_PLANE} color="#FFFFFF" />
       </Animated.View>
 
       <Animated.View
