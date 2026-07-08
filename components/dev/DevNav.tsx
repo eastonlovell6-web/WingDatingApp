@@ -47,14 +47,14 @@ export function DevNav() {
 
   return (
     <>
-      {/* Collapsed: a small tab on the right edge, clear of the header and the
-          floating tab bar. */}
+      {/* Collapsed: a small tab on the right edge, tucked in the safe-area
+          strip above screen content so it never sits on top of a card. */}
       <View
         pointerEvents="box-none"
         style={{
           position: "absolute",
           right: 0,
-          top: insets.top + 140,
+          top: insets.top + 8,
         }}
       >
         <Pressable onPress={() => setOpen(true)} hitSlop={8}>

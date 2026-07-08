@@ -35,8 +35,8 @@ export const plum = {
 export const ink = {
   900: '#1A1412', // primary text (warm near-black)
   700: '#4A3F3C', // sampled — tune vs Figma
-  500: '#8B7F7B', // muted text (captions, placeholders) — sampled, tune vs Figma
-  300: '#C9C0BD', // subtle borders (e.g. Skip button) — sampled, tune vs Figma
+  500: '#786E6A', // muted text (captions, placeholders) — darkened from #8B7F7B, was ~3.7:1 on cream, now ~4.7:1 (WCAG AA)
+  300: '#968C88', // subtle borders, unfocused icons — darkened from #C9C0BD, was ~1.8:1 on white, now ~3.3:1 (WCAG AA for UI components)
   200: '#E4DDDA', // sampled — tune vs Figma
   100: '#F1ECEA', // sampled — tune vs Figma
 } as const;
@@ -74,9 +74,14 @@ export const blush = {
  * Ordered stop arrays ready for expo-linear-gradient's `colors` prop.
  */
 export const gradients = {
-  sunset: [coral[500], blush[300]], // coral → blush (intro-note card, app icon)
+  sunset: [coral[500], blush[300]], // coral → blush (app icon)
   warm: [butter[500], coral[500]], // butter → coral
   dusk: [coral[500], plum[500]], // coral → plum
+  // Between coral-500/600 and coral-600/700 — each stop nudged ~35% back
+  // toward the next-lighter scale step from coral[600]/coral[700], a touch
+  // lighter than that pairing per design feedback. White text: 3.48:1 at the
+  // lighter stop, 4.77:1 at the darker stop. Used by the intro-note card + FAB.
+  ember: ['#F3503D', '#D33A26'],
 } as const;
 
 /**

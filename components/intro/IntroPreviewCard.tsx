@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Text } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
   FadeInDown,
@@ -41,16 +41,20 @@ export function IntroPreviewCard({ intro, index, onPress }: IntroPreviewCardProp
         onPressIn={() => (scale.value = withSpring(0.98, spring))}
         onPressOut={() => (scale.value = withSpring(1, spring))}
         onPress={handlePress}
+        accessible
+        accessibilityRole="button"
+        accessibilityLabel={`Intro from ${intro.matchmakerName}: ${intro.note}`}
       >
         <Animated.View style={animatedStyle}>
           <LinearGradient
-            colors={gradients.sunset}
+            colors={gradients.ember}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={{
               borderRadius: radii.xl,
               padding: spacing[6],
               gap: spacing[4],
+              overflow: "hidden",
             }}
           >
             <Text

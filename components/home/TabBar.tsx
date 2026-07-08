@@ -3,11 +3,18 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Circle, Line, Path } from "react-native-svg";
 import * as Haptics from "expo-haptics";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { coral, gradients, ink, shadowTint, surface } from "../../constants/colors";
 import { fonts, fontSize } from "../../constants/typography";
 import { radii, spacing } from "../../constants/spacing";
 import { ChatsGlyph, IntrosGlyph } from "../ui/TabGlyphs";
+
+const spring = { mass: 0.4, damping: 12, stiffness: 220 };
 
 const TAB_LABELS: Record<string, string> = {
   index: "For You",
@@ -69,6 +76,10 @@ function PlusIcon({ size = 22, color = "#FFFFFF" }: { size?: number; color?: str
 
 export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  const fabScale = useSharedValue(1);
+  const fabAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: fabScale.value }],
+  }));
 
   function handleFabPress() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -136,28 +147,34 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
       </View>
 
       <Pressable
+        onPressIn={() => (fabScale.value = withSpring(0.92, spring))}
+        onPressOut={() => (fabScale.value = withSpring(1, spring))}
         onPress={handleFabPress}
+        accessibilityRole="button"
+        accessibilityLabel="Start new intro"
         style={{ position: "absolute", top: -28 }}
       >
-        <LinearGradient
-          colors={gradients.sunset}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{
-            width: 56,
-            height: 56,
-            borderRadius: radii.pill,
-            alignItems: "center",
-            justifyContent: "center",
-            shadowColor: coral[500],
-            shadowOpacity: 0.4,
-            shadowRadius: 16,
-            shadowOffset: { width: 0, height: 6 },
-            elevation: 8,
-          }}
-        >
-          <PlusIcon />
-        </LinearGradient>
+        <Animated.View style={fabAnimatedStyle}>
+          <LinearGradient
+            colors={gradients.ember}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={{
+              width: 56,
+              height: 56,
+              borderRadius: radii.pill,
+              alignItems: "center",
+              justifyContent: "center",
+              shadowColor: coral[500],
+              shadowOpacity: 0.4,
+              shadowRadius: 16,
+              shadowOffset: { width: 0, height: 6 },
+              elevation: 8,
+            }}
+          >
+            <PlusIcon />
+          </LinearGradient>
+        </Animated.View>
       </Pressable>
     </View>
   );
@@ -176,7 +193,13 @@ function TabButton({
   color: string;
   navigation: BottomTabBarProps["navigation"];
 }) {
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
   function handlePress() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const event = navigation.emit({ type: "tabPress", target: route.key, canPreventDefault: true });
     if (!isFocused && !event.defaultPrevented) {
       navigation.navigate(route.name);
@@ -185,21 +208,28 @@ function TabButton({
 
   return (
     <Pressable
+      onPressIn={() => (scale.value = withSpring(0.88, spring))}
+      onPressOut={() => (scale.value = withSpring(1, spring))}
       onPress={handlePress}
-      style={{ alignItems: "center", justifyContent: "center", gap: 4, flex: 1 }}
+      accessibilityRole="tab"
+      accessibilityLabel={label}
+      accessibilityState={{ selected: isFocused }}
+      style={{ alignItems: "center", justifyContent: "center", flex: 1 }}
     >
-      <TabIcon name={route.name} color={color} />
-      {isFocused && (
-        <Text
-          style={{
-            fontFamily: fonts.bodyMedium,
-            fontSize: fontSize["2xs"][0],
-            color,
-          }}
-        >
-          {label}
-        </Text>
-      )}
+      <Animated.View style={[{ alignItems: "center", justifyContent: "center", gap: 4 }, animatedStyle]}>
+        <TabIcon name={route.name} color={color} />
+        {isFocused && (
+          <Text
+            style={{
+              fontFamily: fonts.bodyMedium,
+              fontSize: fontSize["2xs"][0],
+              color,
+            }}
+          >
+            {label}
+          </Text>
+        )}
+      </Animated.View>
     </Pressable>
   );
 }

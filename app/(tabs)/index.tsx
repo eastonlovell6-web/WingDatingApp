@@ -15,7 +15,7 @@ import { spacing } from "../../constants/spacing";
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const userId = useAuthStore((s) => s.user?.id);
-  const { data: profile } = useQuery({
+  const { data: profile, isLoading } = useQuery({
     queryKey: ["userProfile", userId],
     queryFn: () => getUserProfile(userId!),
     enabled: !!userId,
@@ -36,7 +36,7 @@ export default function HomeScreen() {
           gap: spacing[8],
         }}
       >
-        <HomeHeader name={name} />
+        <HomeHeader name={name} loading={!!userId && isLoading} />
         <IntroFeed intros={MOCK_INTROS} />
         <FriendsRow friends={MOCK_FRIENDS} />
       </ScrollView>
