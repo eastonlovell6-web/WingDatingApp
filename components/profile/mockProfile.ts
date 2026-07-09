@@ -67,6 +67,25 @@ export const MOCK_MATCHMAKER_STATS = {
   introsAccepted: 4,
 };
 
+export interface MatchmakerRankProgress {
+  tier: "Wingperson" | "Setup Artist" | "Cupid" | "Matchmaker Legend";
+  level: number;
+  xpCurrent: number;
+  xpForNextLevel: number;
+  streakWeeks: number;
+}
+
+// TODO: replace with a real progression table once server-side rank/XP/streak
+// tracking exists. tier/level/xp/streak are independent mock fields for now —
+// not derived from `score` by any formula.
+export const MOCK_RANK_PROGRESS: MatchmakerRankProgress = {
+  tier: "Cupid",
+  level: 4,
+  xpCurrent: 340,
+  xpForNextLevel: 500,
+  streakWeeks: 3,
+};
+
 // TODO: replace with 0 sent-intros count from `matchmaker_stats` to test the empty nudge state for real.
 export const MOCK_HAS_SENT_INTROS = true;
 
