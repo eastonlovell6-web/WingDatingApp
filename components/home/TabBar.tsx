@@ -154,7 +154,7 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         onPress={handleFabPress}
         accessibilityRole="button"
         accessibilityLabel="Start new intro"
-        style={{ position: "absolute", top: -44 }}
+        style={{ position: "absolute", top: -FAB_OVERHANG }}
       >
         <Animated.View style={fabAnimatedStyle}>
           <LinearGradient
