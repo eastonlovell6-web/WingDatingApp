@@ -12,53 +12,68 @@ import { Button } from "../ui/Button";
 import { WingMark } from "../ui/WingMark";
 import { coral, ink, plum } from "../../constants/colors";
 import { fonts, fontSize } from "../../constants/typography";
-import { radii } from "../../constants/spacing";
+import { radii, spacing } from "../../constants/spacing";
 
 interface HomeHeaderProps {
   name?: string;
   loading?: boolean;
+  subhead?: string;
   onInvitePress?: () => void;
 }
 
-export function HomeHeader({ name, loading, onInvitePress }: HomeHeaderProps) {
+export function HomeHeader({ name, loading, subhead, onInvitePress }: HomeHeaderProps) {
   return (
-    <Animated.View
-      entering={FadeInDown.duration(250)}
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        gap: 12,
-      }}
-    >
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexShrink: 1, minWidth: 0 }}>
-        <WingMark size={20} color={coral[500]} />
-        {loading ? (
-          <NameSkeleton />
-        ) : (
-          <Text
-            style={{
-              fontFamily: fonts.displaySemibold,
-              fontSize: fontSize.xl[0],
-              lineHeight: fontSize.xl[1],
-              color: ink[900],
-              flexShrink: 1,
-            }}
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.75}
-          >
-            Hey {name ?? "there"}
-          </Text>
-        )}
+    <Animated.View entering={FadeInDown.duration(250)} style={{ gap: spacing[2] }}>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+        }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexShrink: 1, minWidth: 0 }}>
+          <WingMark size={20} color={coral[500]} />
+          {loading ? (
+            <NameSkeleton />
+          ) : (
+            <Text
+              style={{
+                fontFamily: fonts.displaySemibold,
+                fontSize: fontSize.xl[0],
+                lineHeight: fontSize.xl[1],
+                color: ink[900],
+                flexShrink: 1,
+              }}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.75}
+            >
+              Hey {name ?? "there"}
+            </Text>
+          )}
+        </View>
+
+        <Button
+          title="Invite"
+          variant="outline"
+          onPress={onInvitePress}
+          style={{ height: 44, paddingHorizontal: 16, borderColor: plum[100] }}
+        />
       </View>
 
-      <Button
-        title="Invite"
-        variant="outline"
-        onPress={onInvitePress}
-        style={{ height: 44, paddingHorizontal: 16, borderColor: plum[100] }}
-      />
+      {!loading && subhead && (
+        <Text
+          style={{
+            fontFamily: fonts.body,
+            fontSize: fontSize.sm[0],
+            lineHeight: fontSize.sm[1],
+            color: ink[500],
+          }}
+        >
+          {subhead}
+        </Text>
+      )}
     </Animated.View>
   );
 }
