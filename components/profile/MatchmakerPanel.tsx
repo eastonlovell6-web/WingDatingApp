@@ -7,9 +7,11 @@ import { Button } from "../ui/Button";
 import { MatchmakerScoreRing } from "./MatchmakerScoreRing";
 import { RankProgressBar } from "./RankProgressBar";
 import { ShareScoreModal } from "./ShareScoreModal";
-import { coral, ink, shadowTint, surface } from "../../constants/colors";
+import { coral, ink, plum, shadowTint, surface } from "../../constants/colors";
 import { fonts, fontSize } from "../../constants/typography";
 import { radii, spacing } from "../../constants/spacing";
+import { formatRelativeTime } from "../../lib/format";
+import type { SentIntro } from "../intros/mockSentIntros";
 import type { MatchmakerBadge, MatchmakerRankProgress } from "./mockProfile";
 
 function ShareIcon({ size = 20, color = ink[500] }: { size?: number; color?: string }) {
@@ -31,6 +33,33 @@ function ShareIcon({ size = 20, color = ink[500] }: { size?: number; color?: str
         strokeLinejoin="round"
       />
     </Svg>
+  );
+}
+
+function PendingIntroBanner({ intro }: { intro: SentIntro }) {
+  return (
+    <View
+      style={{
+        backgroundColor: plum[100],
+        borderRadius: radii.lg,
+        padding: spacing[4],
+        gap: 2,
+      }}
+    >
+      <Text
+        style={{
+          fontFamily: fonts.bodyMedium,
+          fontSize: fontSize.sm[0],
+          lineHeight: fontSize.sm[1],
+          color: plum[600],
+        }}
+      >
+        {`Your intro for ${intro.personAName} & ${intro.personBName} is still awaiting a reply`}
+      </Text>
+      <Text style={{ fontFamily: fonts.body, fontSize: fontSize.xs[0], color: ink[500] }}>
+        {`Sent ${formatRelativeTime(intro.sentAt)}`}
+      </Text>
+    </View>
   );
 }
 
@@ -134,6 +163,8 @@ interface MatchmakerPanelProps {
   hasSentIntros: boolean;
   badges: MatchmakerBadge[];
   rankProgress: MatchmakerRankProgress;
+  nextMilestoneCopy: string;
+  pendingIntro?: SentIntro;
   onMakeIntroPress?: () => void;
 }
 
@@ -145,6 +176,8 @@ export function MatchmakerPanel({
   hasSentIntros,
   badges,
   rankProgress,
+  nextMilestoneCopy,
+  pendingIntro,
   onMakeIntroPress,
 }: MatchmakerPanelProps) {
   const [shareModalVisible, setShareModalVisible] = useState(false);
@@ -156,6 +189,8 @@ export function MatchmakerPanel({
 
   return (
     <View style={{ gap: spacing[6] }}>
+      {pendingIntro && <PendingIntroBanner intro={pendingIntro} />}
+
       <View
         style={{
           backgroundColor: surface.paper,
@@ -200,10 +235,24 @@ export function MatchmakerPanel({
           rankLevel={rankProgress.level}
         />
 
+        <Text
+          style={{
+            fontFamily: fonts.bodyMedium,
+            fontSize: fontSize.sm[0],
+            lineHeight: fontSize.sm[1],
+            color: coral[600],
+            textAlign: "center",
+          }}
+        >
+          {nextMilestoneCopy}
+        </Text>
+
         <RankProgressBar
           xpCurrent={rankProgress.xpCurrent}
           xpForNextLevel={rankProgress.xpForNextLevel}
           streakWeeks={rankProgress.streakWeeks}
+          streakAtRisk={rankProgress.streakAtRisk}
+          streakResetsInDays={rankProgress.streakResetsInDays}
         />
 
         {/* TODO(phase 2): replace with bell-curve distribution graphic */}
