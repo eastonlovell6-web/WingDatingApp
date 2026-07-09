@@ -39,6 +39,10 @@ export const MOCK_PROFILE_USER = {
   // TODO: age/school/location aren't columns on `users` yet — this stays a
   // placeholder until that data model exists.
   meta: "22 · BYU · Provo, UT",
+  age: 22,
+  // TODO: no single-line bio/tagline column exists yet either — placeholder
+  // until that data model exists, same as `meta` above.
+  tagline: "Still figuring out if cereal counts as soup.",
 };
 
 export const MOCK_PHOTOS: string[] = [

@@ -292,7 +292,7 @@ matchmaker_stats — user_id, intros_sent, intros_accepted (counts only)
 /components
   /ui                  — Button, Card, Avatar, Input, Badge, TruncatedText (word-safe line-clamped text; used by any list/card preview instead of raw numberOfLines+ellipsizeMode), TabGlyphs (IntrosGlyph/ChatsGlyph — shared with TabBar so screen-header icons match the tab bar exactly)
   /intro               — IntroCard, IntroNote, MatchmakerChip
-  /intros              — SentIntroStats, SentIntroRow, SentIntroList, EmptySentIntrosState, mockSentIntros (Intros tab: sent-history, not received intros)
+  /intros              — SentIntroStats (matched stat coral, sent-count stat plum-600), SentIntroRow (pending rows expand in place to show the sent note + Nudge/Withdraw; matched rows never expand — matchmaker firewall), SentIntroList, EmptySentIntrosState, mockSentIntros, MatchmakerLeaderboardCard (plum-gradient summary card + full-leaderboard modal, ranked by intros_accepted not intros_sent), mockLeaderboard (Intros tab: sent-history, not received intros)
   /chats               — ChatList, ChatRow, EmptyChatsState, mockChats (Chats tab: list of active conversations)
   /chat                — MessageBubble, ChatInput, mockMessages (chat thread screen use)
   /profile             — MatchmakerPanel, MatchmakerScoreRing, RankProgressBar, MatchmakerShareCard, ShareScoreModal (share-card capture + native share sheet), ProfileHeader, ProfileSegmentedControl, PhotoPromptPanel, PromptEditorModal, PrivacyPanel, mockProfile (score/rank/badge/pending-intro mock data)

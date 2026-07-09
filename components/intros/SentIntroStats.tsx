@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Text, View } from "react-native";
-import { coral, ink } from "../../constants/colors";
+import { coral, ink, plum } from "../../constants/colors";
 import { fonts, fontSize, textStyles } from "../../constants/typography";
 import { spacing } from "../../constants/spacing";
 import type { SentIntro } from "./mockSentIntros";
@@ -91,7 +91,7 @@ export function SentIntroStats({ intros }: SentIntroStatsProps) {
         color={coral[500]}
         footnote={matchedCount > 0 ? "Not bad, cupid." : undefined}
       />
-      <StatTile value={sentCount} label="Intros sent" />
+      <StatTile value={sentCount} label="Intros sent" color={plum[600]} />
     </View>
   );
 }

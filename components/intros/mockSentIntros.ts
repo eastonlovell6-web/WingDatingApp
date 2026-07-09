@@ -9,6 +9,10 @@ export interface SentIntro {
   // must never surface as its own state. A declined intro simply stays
   // 'pending' forever, so there is no 'declined' value to accidentally render.
   status: "pending" | "matched";
+  // The note the matchmaker wrote in the send flow (Matchmaker Step 2).
+  // Shown back to them only — the matchmaker firewall still blocks any
+  // post-send status/chat visibility.
+  note: string;
 }
 
 // Throwaway fixture data until sent introductions are wired to Supabase.
@@ -21,6 +25,7 @@ export const MOCK_SENT_INTROS: SentIntro[] = [
     personBAvatarUri: "https://i.pravatar.cc/300?img=47",
     sentAt: "2026-07-01",
     status: "matched",
+    note: "You two would get along way too well — both terminally online about the same niche hobby.",
   },
   {
     id: "2",
@@ -29,6 +34,7 @@ export const MOCK_SENT_INTROS: SentIntro[] = [
     personBAvatarUri: "https://i.pravatar.cc/300?img=32",
     sentAt: "2026-06-24",
     status: "pending",
+    note: "Chloe, meet the only person I know who argues about oat milk as passionately as you do.",
   },
   {
     id: "3",
@@ -39,5 +45,6 @@ export const MOCK_SENT_INTROS: SentIntro[] = [
     // In reality Grace passed — but the matchmaker firewall means this stays
     // "Pending" on screen forever, not "Declined".
     status: "pending",
+    note: "Noah, Grace just ran her first half marathon and won't stop talking about it. You two should talk about it together.",
   },
 ];

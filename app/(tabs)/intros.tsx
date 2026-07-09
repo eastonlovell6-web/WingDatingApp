@@ -2,7 +2,9 @@ import { ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SentIntroStats } from "../../components/intros/SentIntroStats";
 import { SentIntroList } from "../../components/intros/SentIntroList";
-import { MOCK_SENT_INTROS } from "../../components/intros/mockSentIntros";
+import { MatchmakerLeaderboardCard } from "../../components/intros/MatchmakerLeaderboardCard";
+import { MOCK_SENT_INTROS, type SentIntro } from "../../components/intros/mockSentIntros";
+import { MOCK_LEADERBOARD } from "../../components/intros/mockLeaderboard";
 import { TAB_BAR_CLEARANCE } from "../../components/home/TabBar";
 import { IntrosGlyph } from "../../components/ui/TabGlyphs";
 import { coral, ink, surface } from "../../constants/colors";
@@ -11,6 +13,14 @@ import { spacing } from "../../constants/spacing";
 
 function handleMakeIntroPress() {
   // TODO: router.push('/matchmaker/select')
+}
+
+function handleNudge(intro: SentIntro) {
+  // TODO: send a nudge notification to the pending recipient(s) via Supabase.
+}
+
+function handleWithdraw(intro: SentIntro) {
+  // TODO: update introductions.status and remove from the sent list via Supabase.
 }
 
 export default function IntrosScreen() {
@@ -43,7 +53,14 @@ export default function IntrosScreen() {
 
         <SentIntroStats intros={MOCK_SENT_INTROS} />
 
-        <SentIntroList intros={MOCK_SENT_INTROS} onMakeIntroPress={handleMakeIntroPress} />
+        <SentIntroList
+          intros={MOCK_SENT_INTROS}
+          onMakeIntroPress={handleMakeIntroPress}
+          onNudge={handleNudge}
+          onWithdraw={handleWithdraw}
+        />
+
+        {hasSentIntros && <MatchmakerLeaderboardCard entries={MOCK_LEADERBOARD} />}
 
         {hasSentIntros && (
           <Text

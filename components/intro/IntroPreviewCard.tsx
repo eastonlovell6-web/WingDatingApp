@@ -1,4 +1,5 @@
 import { Pressable, Text, View } from "react-native";
+import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
   FadeInDown,
@@ -34,7 +35,7 @@ export function IntroPreviewCard({ intro, index, variant = "hero", onPress }: In
 
   function handlePress() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    // TODO: router.push(`/intro/${intro.id}`)
+    router.push(`/intro/${intro.id}`);
     onPress?.();
   }
 
