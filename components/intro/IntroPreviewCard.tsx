@@ -118,19 +118,16 @@ export function IntroPreviewCard({ intro, index, variant = "hero", onPress }: In
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
       >
-        <Animated.View style={animatedStyle}>
+        <Animated.View style={[animatedStyle, elevation.sm]}>
           <LinearGradient
             colors={gradients.sunset}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={[
-              {
-                borderRadius: radii.xl,
-                padding: spacing[6],
-                overflow: "hidden",
-              },
-              elevation.sm,
-            ]}
+            style={{
+              borderRadius: radii.xl,
+              padding: spacing[6],
+              overflow: "hidden",
+            }}
           >
             <View style={{ flexDirection: "row", alignItems: "center", gap: spacing[4] }}>
               <View
