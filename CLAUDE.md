@@ -246,6 +246,7 @@ Mobile:     Expo (React Native) SDK 52+
 Language:   TypeScript — strict mode always on
 Styling:    NativeWind + custom design tokens
 Animation:  React Native Reanimated 3 + Gesture Handler
+Sharing:    react-native-view-shot (view→PNG capture) + expo-sharing (native share sheet) — Matchmaker score share card
 Navigation: Expo Router (file-based routing)
 Backend:    Supabase (auth + database + realtime + storage)
 Push:       Expo Notifications + Supabase Edge Functions
@@ -294,6 +295,7 @@ matchmaker_stats — user_id, intros_sent, intros_accepted (counts only)
   /intros              — SentIntroStats, SentIntroRow, SentIntroList, EmptySentIntrosState, mockSentIntros (Intros tab: sent-history, not received intros)
   /chats               — ChatList, ChatRow, EmptyChatsState, mockChats (Chats tab: list of active conversations)
   /chat                — MessageBubble, ChatInput, mockMessages (chat thread screen use)
+  /profile             — MatchmakerPanel, MatchmakerScoreRing, RankProgressBar, MatchmakerShareCard, ShareScoreModal (share-card capture + native share sheet), ProfileHeader, ProfileSegmentedControl, PhotoPromptPanel, PromptEditorModal, PrivacyPanel, mockProfile (score/rank/badge/pending-intro mock data)
   /auth                — PlaneTrailSuccess (OTP-verified success animation)
   /dev                 — DevNav (dev-only screen jumper, __DEV__ gated, mounted in app/_layout.tsx)
 /lib
