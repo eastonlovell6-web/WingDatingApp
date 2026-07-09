@@ -2,10 +2,12 @@ import { Text, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
+import { MatchmakerScoreRing } from "./MatchmakerScoreRing";
+import { RankProgressBar } from "./RankProgressBar";
 import { coral, ink, shadowTint, surface } from "../../constants/colors";
 import { fonts, fontSize } from "../../constants/typography";
 import { radii, spacing } from "../../constants/spacing";
-import type { MatchmakerBadge } from "./mockProfile";
+import type { MatchmakerBadge, MatchmakerRankProgress } from "./mockProfile";
 
 function StatTile({ value, label }: { value: number; label: string }) {
   return (
@@ -106,6 +108,7 @@ interface MatchmakerPanelProps {
   introsAccepted: number;
   hasSentIntros: boolean;
   badges: MatchmakerBadge[];
+  rankProgress: MatchmakerRankProgress;
   onMakeIntroPress?: () => void;
 }
 
@@ -116,6 +119,7 @@ export function MatchmakerPanel({
   introsAccepted,
   hasSentIntros,
   badges,
+  rankProgress,
   onMakeIntroPress,
 }: MatchmakerPanelProps) {
   return (
@@ -125,8 +129,8 @@ export function MatchmakerPanel({
           backgroundColor: surface.paper,
           borderRadius: radii.xl,
           padding: spacing[6],
-          gap: spacing[2],
-          alignItems: "center",
+          gap: spacing[4],
+          alignItems: "stretch",
           shadowColor: shadowTint,
           shadowOpacity: 1,
           shadowRadius: 16,
@@ -141,20 +145,25 @@ export function MatchmakerPanel({
             letterSpacing: 1,
             textTransform: "uppercase",
             color: coral[500],
+            textAlign: "center",
           }}
         >
           Matchmaker Score
         </Text>
-        <Text
-          style={{
-            fontFamily: fonts.display,
-            fontSize: fontSize["6xl"][0],
-            lineHeight: fontSize["6xl"][1],
-            color: coral[500],
-          }}
-        >
-          {score}
-        </Text>
+
+        <MatchmakerScoreRing
+          score={score}
+          rankTier={rankProgress.tier}
+          rankLevel={rankProgress.level}
+        />
+
+        <RankProgressBar
+          xpCurrent={rankProgress.xpCurrent}
+          xpForNextLevel={rankProgress.xpForNextLevel}
+          streakWeeks={rankProgress.streakWeeks}
+        />
+
+        {/* TODO(phase 2): replace with bell-curve distribution graphic */}
         <Text
           style={{
             fontFamily: fonts.body,
