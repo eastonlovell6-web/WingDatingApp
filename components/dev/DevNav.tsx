@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { plum, coral, ink, surface } from "../../constants/colors";
 import { fonts } from "../../constants/typography";
-import { radii } from "../../constants/spacing";
+import { radii, spacing } from "../../constants/spacing";
 
 // Dev-only screen jumper. Mounted once in the root layout (guarded by __DEV__),
 // it floats a small "DEV" tab on the right edge that opens a route list so we
@@ -53,8 +53,8 @@ export function DevNav() {
         pointerEvents="box-none"
         style={{
           position: "absolute",
-          right: 0,
-          top: insets.top + 8,
+          right: insets.right + spacing[2],
+          top: insets.top + spacing[4],
         }}
       >
         <Pressable onPress={() => setOpen(true)} hitSlop={8}>
