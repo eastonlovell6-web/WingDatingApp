@@ -71,7 +71,7 @@ Built entirely on `react-native-svg` (already a dependency; already used elsewhe
 - Fill animates from 0 → `score`% via a single `withTiming` call, ~1100ms, ease-out, starting on mount.
 
 **Count-up number**, synced to finish exactly when the ring does:
-- Uses the standard Reanimated "animated `TextInput`" counter pattern: `Animated.createAnimatedComponent(TextInput)`, `editable={false}`, `caretHidden`, no visible input chrome — styled to be visually identical to the current static `Text` (Bricolage Grotesque, `fontSize['6xl']`, coral-500).
+- Uses the standard Reanimated "animated `TextInput`" counter pattern: `Animated.createAnimatedComponent(TextInput)`, `editable={false}`, `caretHidden`, no visible input chrome — styled to be visually identical to the current static `Text` (Bricolage Grotesque, `fontSize['5xl']`, coral-500).
 - `useAnimatedProps` sets `text: Math.round(progress.value * score).toString()` every frame, driven on the UI thread — no per-frame JS re-render.
 
 ## Tap-to-flip (3D card flip)

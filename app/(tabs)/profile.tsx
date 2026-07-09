@@ -37,6 +37,7 @@ import {
   MOCK_PRIVACY_SETTINGS,
   MOCK_PROFILE_USER,
   MOCK_PROMPTS,
+  MOCK_RANK_PROGRESS,
 } from "../../components/profile/mockProfile";
 import type { PrivacySettings, ProfilePrompt } from "../../components/profile/mockProfile";
 
@@ -224,6 +225,7 @@ export default function ProfileScreen() {
               introsAccepted={MOCK_MATCHMAKER_STATS.introsAccepted}
               hasSentIntros={MOCK_HAS_SENT_INTROS}
               badges={MOCK_BADGES}
+              rankProgress={MOCK_RANK_PROGRESS}
               onMakeIntroPress={() => comingSoon("Matchmaker")}
             />
           )}
