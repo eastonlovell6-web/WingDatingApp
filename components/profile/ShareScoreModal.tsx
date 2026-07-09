@@ -5,7 +5,7 @@ import ViewShot from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
 import * as Haptics from "expo-haptics";
 import { Button } from "../ui/Button";
-import { MatchmakerShareCard, SHARE_CARD_HEIGHT, SHARE_CARD_WIDTH } from "./MatchmakerShareCard";
+import { MatchmakerShareCard } from "./MatchmakerShareCard";
 import { ink } from "../../constants/colors";
 import { fonts, fontSize } from "../../constants/typography";
 import { spacing } from "../../constants/spacing";
@@ -82,7 +82,7 @@ export function ShareScoreModal({
 
         <ViewShot
           ref={viewShotRef}
-          options={{ format: "png", quality: 1, result: "tmpfile" }}
+          options={{ format: "png", quality: 1, result: "tmpfile", width: 1080, height: 1920 }}
         >
           <MatchmakerShareCard
             score={score}
@@ -101,7 +101,7 @@ export function ShareScoreModal({
             textAlign: "center",
           }}
         >
-          {`Sized for Instagram Story & iMessage (${SHARE_CARD_WIDTH}×${SHARE_CARD_HEIGHT})`}
+          {"Sized for Instagram Story & iMessage (1080×1920)"}
         </Text>
 
         <Button
