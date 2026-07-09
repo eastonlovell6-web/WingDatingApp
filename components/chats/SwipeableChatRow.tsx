@@ -54,11 +54,17 @@ export function SwipeableChatRow({ chat, index, openRowRef, onRemove }: Swipeabl
 
   function handleArchive() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    if (openRowRef.current === swipeableRef.current) {
+      openRowRef.current = null;
+    }
     onRemove(chat.id);
   }
 
   function handleDelete() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    if (openRowRef.current === swipeableRef.current) {
+      openRowRef.current = null;
+    }
     onRemove(chat.id);
   }
 
