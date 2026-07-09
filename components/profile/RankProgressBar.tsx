@@ -62,27 +62,25 @@ export function RankProgressBar({
   const fillStyle = useAnimatedStyle(() => ({ width: fillWidth.value }));
 
   return (
-    <View style={{ gap: spacing[2] }}>
-      <Text
+    <View style={{ gap: spacing[4] }}>
+      <View
         style={{
-          fontFamily: fonts.monoMedium,
-          fontSize: fontSize.xs[0],
-          letterSpacing: 1,
-          textTransform: "uppercase",
-          color: ink[500],
+          flexDirection: "row",
+          justifyContent: "space-between",
+          alignItems: "center",
+          columnGap: spacing[2],
         }}
       >
-        LEVEL PROGRESS
-      </Text>
-
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
         <Text
+          numberOfLines={1}
+          ellipsizeMode="tail"
           style={{
             fontFamily: fonts.monoMedium,
             fontSize: fontSize.xs[0],
             letterSpacing: 1,
             textTransform: "uppercase",
             color: ink[500],
+            flexShrink: 1,
           }}
         >
           {`${xpCurrent} / ${xpForNextLevel} XP TO NEXT LEVEL`}
@@ -92,6 +90,7 @@ export function RankProgressBar({
             flexDirection: "row",
             alignItems: "center",
             gap: 4,
+            flexShrink: 0,
             paddingHorizontal: streakAtRisk ? 8 : 0,
             paddingVertical: streakAtRisk ? 3 : 0,
             borderRadius: radii.pill,
@@ -118,7 +117,7 @@ export function RankProgressBar({
               color: streakAtRisk ? ink[900] : ink[500],
             }}
           >
-            {streakAtRisk ? `STREAK · ENDS IN ${streakResetsInDays}D` : "STREAK"}
+            {streakAtRisk ? `ENDS IN ${streakResetsInDays}D` : "STREAK"}
           </Text>
         </View>
       </View>

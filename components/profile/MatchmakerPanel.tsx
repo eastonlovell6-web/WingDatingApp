@@ -196,7 +196,6 @@ export function MatchmakerPanel({
           backgroundColor: surface.paper,
           borderRadius: radii.xl,
           padding: spacing[6],
-          gap: spacing[4],
           alignItems: "stretch",
           shadowColor: shadowTint,
           shadowOpacity: 1,
@@ -229,11 +228,13 @@ export function MatchmakerPanel({
           </Pressable>
         </View>
 
-        <MatchmakerScoreRing
-          score={score}
-          rankTier={rankProgress.tier}
-          rankLevel={rankProgress.level}
-        />
+        <View style={{ marginTop: spacing[4] }}>
+          <MatchmakerScoreRing
+            score={score}
+            rankTier={rankProgress.tier}
+            rankLevel={rankProgress.level}
+          />
+        </View>
 
         <Text
           style={{
@@ -242,18 +243,21 @@ export function MatchmakerPanel({
             lineHeight: fontSize.sm[1],
             color: coral[700],
             textAlign: "center",
+            marginTop: spacing[8],
           }}
         >
           {nextMilestoneCopy}
         </Text>
 
-        <RankProgressBar
-          xpCurrent={rankProgress.xpCurrent}
-          xpForNextLevel={rankProgress.xpForNextLevel}
-          streakWeeks={rankProgress.streakWeeks}
-          streakAtRisk={rankProgress.streakAtRisk}
-          streakResetsInDays={rankProgress.streakResetsInDays}
-        />
+        <View style={{ marginTop: spacing[2] }}>
+          <RankProgressBar
+            xpCurrent={rankProgress.xpCurrent}
+            xpForNextLevel={rankProgress.xpForNextLevel}
+            streakWeeks={rankProgress.streakWeeks}
+            streakAtRisk={rankProgress.streakAtRisk}
+            streakResetsInDays={rankProgress.streakResetsInDays}
+          />
+        </View>
 
         {/* TODO(phase 2): replace with bell-curve distribution graphic */}
         <Text
@@ -263,6 +267,7 @@ export function MatchmakerPanel({
             lineHeight: fontSize.sm[1],
             color: ink[500],
             textAlign: "center",
+            marginTop: spacing[4],
           }}
         >
           {percentileLabel}
