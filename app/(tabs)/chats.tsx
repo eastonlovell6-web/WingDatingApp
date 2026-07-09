@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ChatList } from "../../components/chats/ChatList";
@@ -10,7 +11,12 @@ import { spacing } from "../../constants/spacing";
 
 export default function ChatsScreen() {
   const insets = useSafeAreaInsets();
-  const hasChats = MOCK_CHATS.length > 0;
+  const [chats, setChats] = useState(MOCK_CHATS);
+  const hasChats = chats.length > 0;
+
+  function handleRemoveChat(id: string) {
+    setChats((prev) => prev.filter((chat) => chat.id !== id));
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: surface.cream }}>
@@ -36,7 +42,7 @@ export default function ChatsScreen() {
           </Text>
         </View>
 
-        <ChatList chats={MOCK_CHATS} />
+        <ChatList chats={chats} onRemoveChat={handleRemoveChat} />
 
         {hasChats && (
           <Text
