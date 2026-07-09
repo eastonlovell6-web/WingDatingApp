@@ -68,7 +68,7 @@ export function FriendsRow({ friends }: FriendsRowProps) {
             right: 0,
             top: 0,
             bottom: 0,
-            width: spacing[8],
+            width: spacing[10],
           }}
         />
       </View>
