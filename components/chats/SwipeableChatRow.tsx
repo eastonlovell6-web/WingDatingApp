@@ -109,10 +109,11 @@ function ActionButton({
   children: React.ReactNode;
 }) {
   return (
-    <Pressable onPress={onPress} style={{ width: ACTION_WIDTH }}>
+    <Pressable onPress={onPress}>
       <View
         style={{
-          flex: 1,
+          width: ACTION_WIDTH,
+          height: "100%",
           backgroundColor: color,
           alignItems: "center",
           justifyContent: "center",
