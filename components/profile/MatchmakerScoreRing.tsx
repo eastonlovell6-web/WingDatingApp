@@ -51,7 +51,7 @@ export function MatchmakerScoreRing({ score, rankTier, rankLevel }: MatchmakerSc
   }, []);
 
   const ringAnimatedProps = useAnimatedProps(() => ({
-    strokeDashoffset: CIRCUMFERENCE * (1 - progress.value),
+    strokeDashoffset: CIRCUMFERENCE * (1 - (score / 100) * progress.value),
   }));
 
   const countAnimatedProps = useAnimatedProps(() => ({
