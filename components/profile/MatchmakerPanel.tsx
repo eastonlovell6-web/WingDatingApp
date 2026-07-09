@@ -1,13 +1,67 @@
-import { Text, View } from "react-native";
+import { useState } from "react";
+import { Pressable, Text, View } from "react-native";
+import Svg, { Path } from "react-native-svg";
 import * as Haptics from "expo-haptics";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import { MatchmakerScoreRing } from "./MatchmakerScoreRing";
 import { RankProgressBar } from "./RankProgressBar";
-import { coral, ink, shadowTint, surface } from "../../constants/colors";
+import { ShareScoreModal } from "./ShareScoreModal";
+import { coral, ink, plum, shadowTint, surface } from "../../constants/colors";
 import { fonts, fontSize } from "../../constants/typography";
 import { radii, spacing } from "../../constants/spacing";
+import { formatRelativeTime } from "../../lib/format";
+import type { SentIntro } from "../intros/mockSentIntros";
 import type { MatchmakerBadge, MatchmakerRankProgress } from "./mockProfile";
+
+function ShareIcon({ size = 20, color = ink[500] }: { size?: number; color?: string }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M12 3v12" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
+      <Path
+        d="M7 8l5-5 5 5"
+        stroke={color}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"
+        stroke={color}
+        strokeWidth={1.8}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+function PendingIntroBanner({ intro }: { intro: SentIntro }) {
+  return (
+    <View
+      style={{
+        backgroundColor: plum[100],
+        borderRadius: radii.lg,
+        padding: spacing[4],
+        gap: 2,
+      }}
+    >
+      <Text
+        style={{
+          fontFamily: fonts.bodyMedium,
+          fontSize: fontSize.sm[0],
+          lineHeight: fontSize.sm[1],
+          color: plum[600],
+        }}
+      >
+        {`Your intro for ${intro.personAName} & ${intro.personBName} is still awaiting a reply`}
+      </Text>
+      <Text style={{ fontFamily: fonts.body, fontSize: fontSize.xs[0], color: ink[500] }}>
+        {`Sent ${formatRelativeTime(intro.sentAt)}`}
+      </Text>
+    </View>
+  );
+}
 
 function StatTile({ value, label }: { value: number; label: string }) {
   return (
@@ -109,6 +163,8 @@ interface MatchmakerPanelProps {
   hasSentIntros: boolean;
   badges: MatchmakerBadge[];
   rankProgress: MatchmakerRankProgress;
+  nextMilestoneCopy: string;
+  pendingIntro?: SentIntro;
   onMakeIntroPress?: () => void;
 }
 
@@ -120,10 +176,21 @@ export function MatchmakerPanel({
   hasSentIntros,
   badges,
   rankProgress,
+  nextMilestoneCopy,
+  pendingIntro,
   onMakeIntroPress,
 }: MatchmakerPanelProps) {
+  const [shareModalVisible, setShareModalVisible] = useState(false);
+
+  function handleSharePress() {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setShareModalVisible(true);
+  }
+
   return (
     <View style={{ gap: spacing[6] }}>
+      {pendingIntro && <PendingIntroBanner intro={pendingIntro} />}
+
       <View
         style={{
           backgroundColor: surface.paper,
@@ -138,18 +205,29 @@ export function MatchmakerPanel({
           elevation: 3,
         }}
       >
-        <Text
-          style={{
-            fontFamily: fonts.monoMedium,
-            fontSize: fontSize.xs[0],
-            letterSpacing: 1,
-            textTransform: "uppercase",
-            color: coral[500],
-            textAlign: "center",
-          }}
-        >
-          Matchmaker Score
-        </Text>
+        <View style={{ position: "relative" }}>
+          <Text
+            style={{
+              fontFamily: fonts.monoMedium,
+              fontSize: fontSize.xs[0],
+              letterSpacing: 1,
+              textTransform: "uppercase",
+              color: coral[500],
+              textAlign: "center",
+            }}
+          >
+            Matchmaker Score
+          </Text>
+          <Pressable
+            onPress={handleSharePress}
+            accessibilityRole="button"
+            accessibilityLabel="Share your matchmaker score"
+            hitSlop={8}
+            style={{ position: "absolute", top: -4, right: 0 }}
+          >
+            <ShareIcon />
+          </Pressable>
+        </View>
 
         <MatchmakerScoreRing
           score={score}
@@ -157,10 +235,24 @@ export function MatchmakerPanel({
           rankLevel={rankProgress.level}
         />
 
+        <Text
+          style={{
+            fontFamily: fonts.bodyMedium,
+            fontSize: fontSize.sm[0],
+            lineHeight: fontSize.sm[1],
+            color: coral[700],
+            textAlign: "center",
+          }}
+        >
+          {nextMilestoneCopy}
+        </Text>
+
         <RankProgressBar
           xpCurrent={rankProgress.xpCurrent}
           xpForNextLevel={rankProgress.xpForNextLevel}
           streakWeeks={rankProgress.streakWeeks}
+          streakAtRisk={rankProgress.streakAtRisk}
+          streakResetsInDays={rankProgress.streakResetsInDays}
         />
 
         {/* TODO(phase 2): replace with bell-curve distribution graphic */}
@@ -193,6 +285,16 @@ export function MatchmakerPanel({
           ))}
         </View>
       )}
+
+      <ShareScoreModal
+        visible={shareModalVisible}
+        onClose={() => setShareModalVisible(false)}
+        score={score}
+        rankTier={rankProgress.tier}
+        rankLevel={rankProgress.level}
+        percentileLabel={percentileLabel}
+        badges={badges}
+      />
     </View>
   );
 }

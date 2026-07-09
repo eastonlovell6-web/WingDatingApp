@@ -27,7 +27,9 @@ const TAB_LABELS: Record<string, string> = {
 // the screen edge — scrollable content must reserve at least this much
 // bottom space or the tab bar/FAB sits on top of (and clips) real content.
 const TAB_BAR_HEIGHT = 72;
-const FAB_OVERHANG = 28;
+// 44 (not 28) so the FAB's bottom edge clears the tab icon centered beneath
+// it in the pill by ~13pt instead of nearly touching it.
+const FAB_OVERHANG = 44;
 const TAB_BAR_BOTTOM_GAP = spacing[2];
 export const TAB_BAR_CLEARANCE = TAB_BAR_HEIGHT + FAB_OVERHANG + TAB_BAR_BOTTOM_GAP;
 
@@ -152,7 +154,7 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         onPress={handleFabPress}
         accessibilityRole="button"
         accessibilityLabel="Start new intro"
-        style={{ position: "absolute", top: -28 }}
+        style={{ position: "absolute", top: -FAB_OVERHANG }}
       >
         <Animated.View style={fabAnimatedStyle}>
           <LinearGradient

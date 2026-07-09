@@ -9,7 +9,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import Svg, { Path } from "react-native-svg";
-import { coral, ink, surface } from "../../constants/colors";
+import { butter, coral, ink, surface } from "../../constants/colors";
 import { fonts, fontSize } from "../../constants/typography";
 import { radii, spacing } from "../../constants/spacing";
 
@@ -22,10 +22,10 @@ const FILL_DURATION = 700;
 const FLAME_PATH =
   "M12 2C12 2 6 9 6 14C6 17.31 8.69 20 12 20C15.31 20 18 17.31 18 14C18 9 12 2 12 2Z";
 
-function StreakFlame({ size = 14 }: { size?: number }) {
+function StreakFlame({ size = 14, color = coral[500] }: { size?: number; color?: string }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24">
-      <Path d={FLAME_PATH} fill={coral[500]} />
+      <Path d={FLAME_PATH} fill={color} />
     </Svg>
   );
 }
@@ -34,9 +34,17 @@ interface RankProgressBarProps {
   xpCurrent: number;
   xpForNextLevel: number;
   streakWeeks: number;
+  streakAtRisk?: boolean;
+  streakResetsInDays?: number;
 }
 
-export function RankProgressBar({ xpCurrent, xpForNextLevel, streakWeeks }: RankProgressBarProps) {
+export function RankProgressBar({
+  xpCurrent,
+  xpForNextLevel,
+  streakWeeks,
+  streakAtRisk = false,
+  streakResetsInDays = 0,
+}: RankProgressBarProps) {
   const [trackWidth, setTrackWidth] = useState(0);
   const fillWidth = useSharedValue(0);
   const fraction = xpForNextLevel > 0 ? Math.min(xpCurrent / xpForNextLevel, 1) : 0;
@@ -55,6 +63,18 @@ export function RankProgressBar({ xpCurrent, xpForNextLevel, streakWeeks }: Rank
 
   return (
     <View style={{ gap: spacing[2] }}>
+      <Text
+        style={{
+          fontFamily: fonts.monoMedium,
+          fontSize: fontSize.xs[0],
+          letterSpacing: 1,
+          textTransform: "uppercase",
+          color: ink[500],
+        }}
+      >
+        LEVEL PROGRESS
+      </Text>
+
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
         <Text
           style={{
@@ -67,10 +87,38 @@ export function RankProgressBar({ xpCurrent, xpForNextLevel, streakWeeks }: Rank
         >
           {`${xpCurrent} / ${xpForNextLevel} XP TO NEXT LEVEL`}
         </Text>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-          <StreakFlame />
-          <Text style={{ fontFamily: fonts.monoMedium, fontSize: fontSize.xs[0], color: ink[900] }}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 4,
+            paddingHorizontal: streakAtRisk ? 8 : 0,
+            paddingVertical: streakAtRisk ? 3 : 0,
+            borderRadius: radii.pill,
+            borderWidth: streakAtRisk ? 1.5 : 0,
+            borderColor: streakAtRisk ? butter[500] : "transparent",
+          }}
+        >
+          <StreakFlame color={streakAtRisk ? butter[700] : coral[500]} />
+          <Text
+            style={{
+              fontFamily: fonts.monoMedium,
+              fontSize: fontSize.xs[0],
+              color: ink[900],
+            }}
+          >
             {streakWeeks}
+          </Text>
+          <Text
+            style={{
+              fontFamily: fonts.monoMedium,
+              fontSize: fontSize["2xs"][0],
+              letterSpacing: 1,
+              textTransform: "uppercase",
+              color: streakAtRisk ? ink[900] : ink[500],
+            }}
+          >
+            {streakAtRisk ? `STREAK · ENDS IN ${streakResetsInDays}D` : "STREAK"}
           </Text>
         </View>
       </View>

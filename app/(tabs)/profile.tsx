@@ -33,6 +33,7 @@ import {
   MOCK_HAS_SENT_INTROS,
   MOCK_INTRODUCERS_COUNT,
   MOCK_MATCHMAKER_STATS,
+  MOCK_NEXT_MILESTONE_COPY,
   MOCK_PHOTOS,
   MOCK_PRIVACY_SETTINGS,
   MOCK_PROFILE_USER,
@@ -40,6 +41,7 @@ import {
   MOCK_RANK_PROGRESS,
 } from "../../components/profile/mockProfile";
 import type { PrivacySettings, ProfilePrompt } from "../../components/profile/mockProfile";
+import { MOCK_SENT_INTROS } from "../../components/intros/mockSentIntros";
 
 const SEGMENTS = ["Profile", "Matchmaker", "Privacy"];
 
@@ -175,6 +177,8 @@ export default function ProfileScreen() {
     setPromptEditor(null);
   }
 
+  const pendingIntro = MOCK_SENT_INTROS.find((intro) => intro.status === "pending");
+
   return (
     <View style={{ flex: 1, backgroundColor: surface.cream }}>
       <View
@@ -226,6 +230,8 @@ export default function ProfileScreen() {
               hasSentIntros={MOCK_HAS_SENT_INTROS}
               badges={MOCK_BADGES}
               rankProgress={MOCK_RANK_PROGRESS}
+              nextMilestoneCopy={MOCK_NEXT_MILESTONE_COPY}
+              pendingIntro={pendingIntro}
               onMakeIntroPress={() => comingSoon("Matchmaker")}
             />
           )}

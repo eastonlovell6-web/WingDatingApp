@@ -73,6 +73,8 @@ export interface MatchmakerRankProgress {
   xpCurrent: number;
   xpForNextLevel: number;
   streakWeeks: number;
+  streakAtRisk: boolean;
+  streakResetsInDays: number;
 }
 
 // TODO: replace with a real progression table once server-side rank/XP/streak
@@ -84,14 +86,21 @@ export const MOCK_RANK_PROGRESS: MatchmakerRankProgress = {
   xpCurrent: 340,
   xpForNextLevel: 500,
   streakWeeks: 3,
+  streakAtRisk: true,
+  streakResetsInDays: 1,
 };
+
+// TODO: replace once real progression math exists server-side. Precomputed
+// nudge copy, not derived from a formula — same convention as score/
+// percentileLabel above.
+export const MOCK_NEXT_MILESTONE_COPY = "2 more intros to reach 100";
 
 // TODO: replace with 0 sent-intros count from `matchmaker_stats` to test the empty nudge state for real.
 export const MOCK_HAS_SENT_INTROS = true;
 
 // TODO: derive from thresholds against `matchmaker_stats` once that table is real.
 export const MOCK_BADGES: MatchmakerBadge[] = [
-  { id: "1", label: "Top Matchmaker", tone: "coral", variant: "solid" },
+  { id: "1", label: "Top Matchmaker", tone: "butter", variant: "outline" },
   { id: "2", label: "5 Intros Sent", tone: "plum", variant: "outline" },
   { id: "3", label: "3 Matches Made", tone: "mint", variant: "outline" },
 ];
