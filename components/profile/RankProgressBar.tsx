@@ -9,7 +9,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import Svg, { Path } from "react-native-svg";
-import { coral, ink, surface } from "../../constants/colors";
+import { butter, coral, ink, surface } from "../../constants/colors";
 import { fonts, fontSize } from "../../constants/typography";
 import { radii, spacing } from "../../constants/spacing";
 
@@ -95,15 +95,16 @@ export function RankProgressBar({
             paddingHorizontal: streakAtRisk ? 8 : 0,
             paddingVertical: streakAtRisk ? 3 : 0,
             borderRadius: radii.pill,
-            backgroundColor: streakAtRisk ? coral[100] : "transparent",
+            borderWidth: streakAtRisk ? 1.5 : 0,
+            borderColor: streakAtRisk ? butter[500] : "transparent",
           }}
         >
-          <StreakFlame color={streakAtRisk ? coral[600] : coral[500]} />
+          <StreakFlame color={streakAtRisk ? butter[700] : coral[500]} />
           <Text
             style={{
               fontFamily: fonts.monoMedium,
               fontSize: fontSize.xs[0],
-              color: streakAtRisk ? coral[600] : ink[900],
+              color: ink[900],
             }}
           >
             {streakWeeks}
@@ -114,7 +115,7 @@ export function RankProgressBar({
               fontSize: fontSize["2xs"][0],
               letterSpacing: 1,
               textTransform: "uppercase",
-              color: streakAtRisk ? coral[600] : ink[500],
+              color: streakAtRisk ? ink[900] : ink[500],
             }}
           >
             {streakAtRisk ? `STREAK · ENDS IN ${streakResetsInDays}D` : "STREAK"}

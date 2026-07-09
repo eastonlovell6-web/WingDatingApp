@@ -240,7 +240,7 @@ export function MatchmakerPanel({
             fontFamily: fonts.bodyMedium,
             fontSize: fontSize.sm[0],
             lineHeight: fontSize.sm[1],
-            color: coral[600],
+            color: coral[700],
             textAlign: "center",
           }}
         >
