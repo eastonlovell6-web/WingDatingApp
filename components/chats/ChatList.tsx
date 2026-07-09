@@ -16,7 +16,7 @@ export function ChatList({ chats }: ChatListProps) {
   return (
     <View style={{ gap: spacing[4] }}>
       {chats.map((chat, index) => (
-        <ChatRow key={chat.id} chat={chat} index={index} />
+        <ChatRow key={chat.id} chat={chat} index={index} onPress={() => {}} />
       ))}
     </View>
   );

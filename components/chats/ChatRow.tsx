@@ -1,5 +1,4 @@
 import { Pressable, Text, View } from "react-native";
-import { router } from "expo-router";
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -8,7 +7,6 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
-import * as Haptics from "expo-haptics";
 import { Avatar } from "../ui/Avatar";
 import { TruncatedText } from "../ui/TruncatedText";
 import { coral, ink, plum, shadowTint, surface } from "../../constants/colors";
@@ -20,6 +18,7 @@ import type { ChatPreview } from "./mockChats";
 interface ChatRowProps {
   chat: ChatPreview;
   index: number;
+  onPress: () => void;
 }
 
 const spring = { mass: 0.4, damping: 12, stiffness: 220 };
@@ -29,23 +28,21 @@ const spring = { mass: 0.4, damping: 12, stiffness: 220 };
 // feel like copies of each other.
 const ROW_STAGGER_MS = 45;
 const ROW_ENTER_DURATION_MS = 160;
+const UNREAD_BADGE_MAX = 9;
 
-export function ChatRow({ chat, index }: ChatRowProps) {
+export function ChatRow({ chat, index, onPress }: ChatRowProps) {
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
   const firstName = chat.matchName.split(" ")[0];
   const rowDelay = index * ROW_STAGGER_MS;
-
-  function handlePress() {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    router.push(`/chat/${chat.id}` as never);
-  }
+  const isUnread = chat.unreadCount > 0;
+  const weightedFont = isUnread ? fonts.bodyMedium : fonts.body;
 
   return (
     <Pressable
       onPressIn={() => (scale.value = withSpring(0.98, spring))}
       onPressOut={() => (scale.value = withSpring(1, spring))}
-      onPress={handlePress}
+      onPress={onPress}
     >
       {/* Entrance (`entering`) lives on this outer node and the press-scale
           (`useAnimatedStyle`) on the inner one, matching the pattern already
@@ -78,7 +75,7 @@ export function ChatRow({ chat, index }: ChatRowProps) {
               <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 1 }}>
                 <Text
                   style={{
-                    fontFamily: chat.unread ? fonts.bodyBold : fonts.bodyMedium,
+                    fontFamily: isUnread ? fonts.bodyBold : fonts.bodyMedium,
                     fontSize: fontSize.base[0],
                     color: ink[900],
                   }}
@@ -86,20 +83,32 @@ export function ChatRow({ chat, index }: ChatRowProps) {
                 >
                   {firstName}
                 </Text>
-                {chat.unread && (
+                {isUnread && (
                   <Animated.View
                     entering={FadeIn.duration(220).delay(rowDelay + 260)}
-                    style={{ width: 8, height: 8, borderRadius: radii.pill, backgroundColor: coral[500] }}
-                  />
+                    style={{
+                      minWidth: 20,
+                      height: 20,
+                      paddingHorizontal: 6,
+                      borderRadius: radii.pill,
+                      backgroundColor: coral[500],
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Text style={{ fontFamily: fonts.bodyBold, fontSize: fontSize["2xs"][0], color: "#FFFFFF" }}>
+                      {chat.unreadCount > UNREAD_BADGE_MAX ? `${UNREAD_BADGE_MAX}+` : chat.unreadCount}
+                    </Text>
+                  </Animated.View>
                 )}
               </View>
-              <Text style={{ fontFamily: fonts.body, fontSize: fontSize.sm[0], color: ink[500] }}>
+              <Text style={{ fontFamily: weightedFont, fontSize: fontSize.sm[0], color: ink[500] }}>
                 {formatRelativeTime(chat.lastMessageAt)}
               </Text>
             </View>
 
             <TruncatedText
-              style={{ fontFamily: fonts.body, fontSize: fontSize.sm[0], color: ink[500] }}
+              style={{ fontFamily: weightedFont, fontSize: fontSize.sm[0], color: ink[500] }}
               numberOfLines={1}
             >
               {chat.lastMessage}
