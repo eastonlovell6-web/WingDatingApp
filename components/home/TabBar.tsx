@@ -9,7 +9,8 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { coral, gradients, ink, shadowTint, surface } from "../../constants/colors";
+import { coral, gradients, ink, surface } from "../../constants/colors";
+import { elevation } from "../../constants/elevation";
 import { fonts, fontSize } from "../../constants/typography";
 import { radii, spacing } from "../../constants/spacing";
 import { ChatsGlyph, IntrosGlyph } from "../ui/TabGlyphs";
@@ -27,9 +28,9 @@ const TAB_LABELS: Record<string, string> = {
 // the screen edge — scrollable content must reserve at least this much
 // bottom space or the tab bar/FAB sits on top of (and clips) real content.
 const TAB_BAR_HEIGHT = 72;
-// 44 (not 28) so the FAB's bottom edge clears the tab icon centered beneath
-// it in the pill by ~13pt instead of nearly touching it.
-const FAB_OVERHANG = 44;
+// FAB height (56) + a visible gap above the pill's top edge, so the FAB
+// floats fully clear of the pill instead of overlapping ~12pt into it.
+const FAB_OVERHANG = 56 + spacing[2];
 const TAB_BAR_BOTTOM_GAP = spacing[2];
 export const TAB_BAR_CLEARANCE = TAB_BAR_HEIGHT + FAB_OVERHANG + TAB_BAR_BOTTOM_GAP;
 
@@ -99,21 +100,19 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
       }}
     >
       <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          width: "100%",
-          height: 72,
-          borderRadius: radii.pill,
-          backgroundColor: surface.paper,
-          paddingHorizontal: spacing[6],
-          shadowColor: shadowTint,
-          shadowOpacity: 1,
-          shadowRadius: 20,
-          shadowOffset: { width: 0, height: 8 },
-          elevation: 10,
-        }}
+        style={[
+          {
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            width: "100%",
+            height: 72,
+            borderRadius: radii.pill,
+            backgroundColor: surface.paper,
+            paddingHorizontal: spacing[6],
+          },
+          elevation.lg,
+        ]}
       >
         {state.routes.map((route, i) => {
           const isFocused = state.index === i;
@@ -161,18 +160,16 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
             colors={gradients.ember}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={{
-              width: 56,
-              height: 56,
-              borderRadius: radii.pill,
-              alignItems: "center",
-              justifyContent: "center",
-              shadowColor: coral[500],
-              shadowOpacity: 0.4,
-              shadowRadius: 16,
-              shadowOffset: { width: 0, height: 6 },
-              elevation: 8,
-            }}
+            style={[
+              {
+                width: 56,
+                height: 56,
+                borderRadius: radii.pill,
+                alignItems: "center",
+                justifyContent: "center",
+              },
+              elevation.brand,
+            ]}
           >
             <PlusIcon />
           </LinearGradient>
