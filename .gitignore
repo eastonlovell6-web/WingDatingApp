@@ -40,6 +40,7 @@ yarn-error.*
 .claude-flow/
 .superpowers/
 .impeccable/
+.worktrees/
 
 # typescript
 *.tsbuildinfo
