@@ -51,7 +51,9 @@ export default function MatchmakerSelectScreen() {
     f.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const selectedFriends = MOCK_MATCHMAKER_FRIENDS.filter((f) => selectedIds.includes(f.id));
+  const selectedFriends = selectedIds.map(
+    (id) => MOCK_MATCHMAKER_FRIENDS.find((f) => f.id === id)!
+  );
   const canContinue = selectedIds.length === 2;
 
   const buttonScale = useSharedValue(1);
@@ -63,7 +65,7 @@ export default function MatchmakerSelectScreen() {
     if (canContinue) {
       buttonScale.value = withSequence(withSpring(1.06, spring), withSpring(1, spring));
     }
-  }, [canContinue]);
+  }, [canContinue, buttonScale]);
 
   function handleToggle(friendId: string) {
     setSelectedIds((prev) =>
