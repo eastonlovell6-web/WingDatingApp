@@ -60,7 +60,12 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <StatusBar style="dark" />
-          <Stack screenOptions={{ headerShown: false }} />
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen
+              name="matchmaker/select"
+              options={{ presentation: "modal", animation: "slide_from_bottom" }}
+            />
+          </Stack>
           {__DEV__ && <DevNav />}
         </QueryClientProvider>
       </SafeAreaProvider>

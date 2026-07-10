@@ -3,6 +3,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Circle, Line, Path } from "react-native-svg";
 import * as Haptics from "expo-haptics";
+import { router } from "expo-router";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -86,7 +87,7 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 
   function handleFabPress() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    // TODO: router.push('/matchmaker/select')
+    router.push("/matchmaker/select" as never);
   }
 
   return (
