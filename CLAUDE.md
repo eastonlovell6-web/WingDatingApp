@@ -286,12 +286,13 @@ matchmaker_stats — user_id, intros_sent, intros_accepted (counts only)
   /intro/[id].tsx      — full intro card screen
   /chat/[id].tsx       — chat thread screen (message bubbles + input; no read receipts, no typing indicator)
   /matchmaker
-    select.tsx         — step 1: select two friends
-    note.tsx           — step 2: write note + send
+    select.tsx         — step 1: select two friends (modal sheet off the FAB; mock friend data + per-person eligibility, not per-pair — pair validation is step 2's job)
+    note.tsx           — step 2: write note + send (not yet built)
   /request/[friendId].tsx
 /components
   /ui                  — Button, Card, Avatar, Input, Badge, TruncatedText (word-safe line-clamped text; used by any list/card preview instead of raw numberOfLines+ellipsizeMode), TabGlyphs (IntrosGlyph/ChatsGlyph — shared with TabBar so screen-header icons match the tab bar exactly)
   /intro               — IntroCard, IntroNote, MatchmakerChip
+  /matchmaker          — FriendPickerChip (3 states: eligible/selected/ineligible; owns the tap-at-cap shake + Warning haptic), FriendPickerGrid (4-col, measures own width via onLayout), MatchmakerEncouragementState (<2-eligible-friends fallback), mockMatchmakerFriends (`MatchmakerFriend`, `getFriendEligibility`, `getIneligibleCaption` — Step 1 friend-picker screen use)
   /intros              — SentIntroStats (matched stat coral, sent-count stat plum-600), SentIntroRow (pending rows expand in place to show the sent note + Nudge/Withdraw; matched rows never expand — matchmaker firewall), SentIntroList, EmptySentIntrosState, mockSentIntros, MatchmakerLeaderboardCard (plum-gradient summary card + full-leaderboard modal, ranked by intros_accepted not intros_sent), mockLeaderboard (Intros tab: sent-history, not received intros)
   /chats               — ChatList (owns shared open-row ref + removal animation), ChatRow (presentational, takes `onPress`), SwipeableChatRow (Swipeable wrapper: navigation, haptics, single-open coordination, Mute/Archive/Delete actions), ChatRowActionIcons (Mute/Archive/Delete line icons), EmptyChatsState, mockChats (`unreadCount: number`) (Chats tab: list of active conversations)
   /chat                — MessageBubble, ChatInput, mockMessages (chat thread screen use)
