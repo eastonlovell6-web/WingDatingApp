@@ -41,7 +41,12 @@ export default function MatchmakerSelectScreen() {
   const { preselect } = useLocalSearchParams<{ preselect?: string }>();
   const insets = useSafeAreaInsets();
   const [search, setSearch] = useState("");
-  const [selectedIds, setSelectedIds] = useState<string[]>(() => (preselect ? [preselect] : []));
+  const [selectedIds, setSelectedIds] = useState<string[]>(() => {
+    if (!preselect) return [];
+    const preselectedFriend = MOCK_MATCHMAKER_FRIENDS.find((f) => f.id === preselect);
+    if (!preselectedFriend || getFriendEligibility(preselectedFriend) !== "eligible") return [];
+    return [preselect];
+  });
 
   const eligibleCount = MOCK_MATCHMAKER_FRIENDS.filter(
     (f) => getFriendEligibility(f) === "eligible"
