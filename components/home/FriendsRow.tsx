@@ -1,4 +1,5 @@
 import { Pressable, ScrollView, Text, View } from "react-native";
+import { router } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, {
   FadeInDown,
@@ -17,8 +18,8 @@ interface FriendsRowProps {
   friends: WingFriend[];
 }
 
-function handleFriendPress(_friendId: string) {
-  // TODO: router.push(`/matchmaker/select?preselect=${friendId}`)
+function handleFriendPress(friendId: string) {
+  router.push(`/friend/${friendId}` as never);
 }
 
 const spring = { mass: 0.4, damping: 12, stiffness: 220 };

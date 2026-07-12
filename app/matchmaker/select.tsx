@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import Animated, {
@@ -38,9 +38,10 @@ function XIcon() {
 }
 
 export default function MatchmakerSelectScreen() {
+  const { preselect } = useLocalSearchParams<{ preselect?: string }>();
   const insets = useSafeAreaInsets();
   const [search, setSearch] = useState("");
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>(() => (preselect ? [preselect] : []));
 
   const eligibleCount = MOCK_MATCHMAKER_FRIENDS.filter(
     (f) => getFriendEligibility(f) === "eligible"
