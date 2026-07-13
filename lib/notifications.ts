@@ -4,12 +4,14 @@ import { Platform } from "react-native";
 import { supabase } from "./supabase";
 
 // Without an explicit handler, notifications fired while the app is
-// foregrounded don't show a banner on current Expo SDKs.
+// foregrounded don't show a banner on current Expo SDKs. shouldPlaySound
+// must stay true — on Android, false suppresses the heads-up banner
+// entirely regardless of shouldShowBanner.
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowBanner: true,
     shouldShowList: true,
-    shouldPlaySound: false,
+    shouldPlaySound: true,
     shouldSetBadge: false,
   }),
 });
