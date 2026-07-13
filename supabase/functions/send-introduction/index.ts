@@ -47,10 +47,14 @@ Deno.serve(async (req: Request) => {
     const matchmakerFirstName = (matchmaker?.name ?? "Someone").split(" ")[0];
     const { title, body } = formatIntroNotification(matchmakerFirstName);
 
-    await Promise.all([
-      sendPushToUser(admin, userAId, title, body, { type: "intro", introId: intro.id }),
-      sendPushToUser(admin, userBId, title, body, { type: "intro", introId: intro.id }),
-    ]);
+    try {
+      await Promise.all([
+        sendPushToUser(admin, userAId, title, body, { type: "intro", introId: intro.id }),
+        sendPushToUser(admin, userBId, title, body, { type: "intro", introId: intro.id }),
+      ]);
+    } catch (pushError) {
+      console.warn("send-introduction: push delivery failed", pushError);
+    }
 
     return new Response(JSON.stringify({ introId: intro.id }), { status: 200 });
   } catch (err) {
