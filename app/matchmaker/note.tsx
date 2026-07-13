@@ -75,8 +75,6 @@ export default function MatchmakerNoteScreen() {
         trigger: null,
       });
     }
-
-    setConfirming(true);
   }
 
   function handleConfirmationDismiss() {
