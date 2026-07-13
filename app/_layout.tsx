@@ -10,6 +10,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { DevNav } from "../components/dev/DevNav";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
+import * as Notifications from "expo-notifications";
 import {
   BricolageGrotesque_600SemiBold,
   BricolageGrotesque_700Bold,
@@ -27,6 +28,18 @@ import {
 // Keep the splash up until fonts are ready — the whole UI is type-driven, so
 // rendering before the families load would flash system fonts (FOUT).
 SplashScreen.preventAutoHideAsync();
+
+// Without an explicit handler, notifications fired while the app is
+// foregrounded (always true for the Matchmaker send flow) don't show a
+// banner on current Expo SDKs.
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+});
 
 export default function RootLayout() {
   const [queryClient] = useState(() => new QueryClient());

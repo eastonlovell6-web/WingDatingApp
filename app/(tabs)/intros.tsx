@@ -3,7 +3,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { SentIntroStats } from "../../components/intros/SentIntroStats";
 import { SentIntroList } from "../../components/intros/SentIntroList";
 import { MatchmakerLeaderboardCard } from "../../components/intros/MatchmakerLeaderboardCard";
-import { MOCK_SENT_INTROS, type SentIntro } from "../../components/intros/mockSentIntros";
+import type { SentIntro } from "../../components/intros/mockSentIntros";
+import { useIntrosStore } from "../../store/intros";
 import { MOCK_LEADERBOARD } from "../../components/intros/mockLeaderboard";
 import { TAB_BAR_CLEARANCE } from "../../components/home/TabBar";
 import { IntrosGlyph } from "../../components/ui/TabGlyphs";
@@ -25,7 +26,8 @@ function handleWithdraw(intro: SentIntro) {
 
 export default function IntrosScreen() {
   const insets = useSafeAreaInsets();
-  const hasSentIntros = MOCK_SENT_INTROS.length > 0;
+  const sentIntros = useIntrosStore((s) => s.sentIntros);
+  const hasSentIntros = sentIntros.length > 0;
 
   return (
     <View style={{ flex: 1, backgroundColor: surface.cream }}>
@@ -51,10 +53,10 @@ export default function IntrosScreen() {
           </Text>
         </View>
 
-        <SentIntroStats intros={MOCK_SENT_INTROS} />
+        <SentIntroStats intros={sentIntros} />
 
         <SentIntroList
-          intros={MOCK_SENT_INTROS}
+          intros={sentIntros}
           onMakeIntroPress={handleMakeIntroPress}
           onNudge={handleNudge}
           onWithdraw={handleWithdraw}
