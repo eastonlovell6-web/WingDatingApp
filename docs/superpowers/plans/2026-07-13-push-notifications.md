@@ -916,16 +916,34 @@ export async function requestIntroduction(targetId: string, mutualFriendId: stri
 
 export type IntroResponseResult = "pending_a" | "pending_b" | "accepted" | "passed";
 
+/**
+ * respond-to-introduction guards its status update with a compare-and-swap
+ * and returns 409 if the row changed between its read and write (e.g. the
+ * other participant responded at nearly the same instant). That 409 doesn't
+ * mean this response failed — it means the attempt needs to be resubmitted
+ * against the now-current status, which is why this retries once before
+ * giving up. Without the retry, a genuine simultaneous double-accept could
+ * silently fail to notify the matchmaker from the loser's side.
+ */
 export async function respondToIntroduction(
   introId: string,
   response: "accept" | "pass"
 ): Promise<IntroResponseResult> {
-  const { data, error } = await supabase.functions.invoke<{ status: IntroResponseResult }>(
-    "respond-to-introduction",
-    { body: { introId, response } }
-  );
-  if (error) throw error;
-  return data!.status;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const { data, error } = await supabase.functions.invoke<{ status: IntroResponseResult }>(
+      "respond-to-introduction",
+      { body: { introId, response } }
+    );
+    if (!error) {
+      return data!.status;
+    }
+    const isStatusConflict =
+      "context" in error && error.context instanceof Response && error.context.status === 409;
+    if (!isStatusConflict || attempt === 1) {
+      throw error;
+    }
+  }
+  throw new Error("respondToIntroduction: unreachable");
 }
 ```
 
