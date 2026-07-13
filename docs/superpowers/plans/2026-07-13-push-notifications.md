@@ -784,13 +784,11 @@ import Constants from "expo-constants";
 import { Platform } from "react-native";
 import { supabase } from "./supabase";
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+// `app/_layout.tsx` already calls Notifications.setNotificationHandler at
+// module load — a second call here would silently overwrite it with a
+// different (and deprecated, shouldShowAlert-based) config depending on
+// import order. Registration/routing only; the handler stays owned by the
+// root layout.
 
 export type WingNotificationData =
   | { type: "intro"; introId: string }
