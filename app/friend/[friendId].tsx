@@ -73,11 +73,16 @@ export default function FriendProfileScreen() {
         }}
         showsVerticalScrollIndicator={false}
       >
-        <FriendProfileHeader name={friend.name} meta={friend.meta} avatarUri={friend.photos[0]} />
+        <FriendProfileHeader
+          name={friend.name}
+          meta={friend.meta}
+          avatarUri={friend.photos[0]}
+          showWingmanBadge={!friend.lookingToGetSetUp}
+        />
         <FriendPhotoPromptPanel photos={friend.photos} prompts={friend.prompts} />
 
         <View style={{ gap: spacing[4] }}>
-          {friend.canIntroduce && (
+          {friend.canIntroduce && friend.lookingToGetSetUp && (
             <Button
               title={`Introduce ${firstName} to someone`}
               onPress={() => router.push(`/matchmaker/select?preselect=${friend.id}` as never)}
