@@ -45,7 +45,7 @@ export default function MatchmakerNoteScreen() {
   // this just backs out rather than showing a dedicated error state.
   useEffect(() => {
     if (!friendA || !friendB) {
-      router.back();
+      router.canGoBack() && router.back();
     }
   }, [friendA, friendB]);
 
@@ -56,7 +56,7 @@ export default function MatchmakerNoteScreen() {
   const canSend = note.trim().length > 0;
 
   async function handleSend() {
-    if (!friendA || !friendB || !canSend) return;
+    if (confirming || !friendA || !friendB || !canSend) return;
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     useIntrosStore.getState().sendIntro(friendA, friendB, note.trim());
@@ -140,7 +140,7 @@ export default function MatchmakerNoteScreen() {
           borderTopColor: ink[200],
         }}
       >
-        <Button title="Send intro" onPress={handleSend} disabled={!canSend} />
+        <Button title="Send intro" onPress={handleSend} disabled={!canSend || confirming} />
       </View>
 
       <SendConfirmationOverlay visible={confirming} onDismiss={handleConfirmationDismiss} />
