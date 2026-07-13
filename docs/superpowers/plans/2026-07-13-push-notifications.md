@@ -385,10 +385,17 @@ Deno.serve(async (req: Request) => {
     const matchmakerFirstName = (matchmaker?.name ?? "Someone").split(" ")[0];
     const { title, body } = formatIntroNotification(matchmakerFirstName);
 
-    await Promise.all([
-      sendPushToUser(admin, userAId, title, body, { type: "intro", introId: intro.id }),
-      sendPushToUser(admin, userBId, title, body, { type: "intro", introId: intro.id }),
-    ]);
+    // The introduction row is already committed at this point — push
+    // delivery is best-effort and must never turn a successful write into a
+    // failure response (a client retry on 500 would create a duplicate row).
+    try {
+      await Promise.all([
+        sendPushToUser(admin, userAId, title, body, { type: "intro", introId: intro.id }),
+        sendPushToUser(admin, userBId, title, body, { type: "intro", introId: intro.id }),
+      ]);
+    } catch (pushError) {
+      console.warn("send-introduction: push delivery failed", pushError);
+    }
 
     return new Response(JSON.stringify({ introId: intro.id }), { status: 200 });
   } catch (err) {
@@ -468,7 +475,15 @@ Deno.serve(async (req: Request) => {
     const requesterFirstName = (requester?.name ?? "Someone").split(" ")[0];
     const { title, body } = formatIntroRequestNotification(requesterFirstName);
 
-    await sendPushToUser(admin, mutualFriendId, title, body, { type: "intro_request" });
+    // The intro_requests row is already committed at this point — push
+    // delivery is best-effort and must never turn a successful write into a
+    // failure response (a client retry on 500 would create a duplicate
+    // request row).
+    try {
+      await sendPushToUser(admin, mutualFriendId, title, body, { type: "intro_request" });
+    } catch (pushError) {
+      console.warn("request-introduction: push delivery failed", pushError);
+    }
 
     return new Response(JSON.stringify({ requestId: request.id }), { status: 200 });
   } catch (err) {
@@ -578,7 +593,14 @@ Deno.serve(async (req: Request) => {
 
     if (newStatus === "accepted") {
       const { title, body } = formatIntroAcceptedNotification();
-      await sendPushToUser(admin, intro.matchmaker_id, title, body, { type: "intro_accepted" });
+      // The status is already committed at this point — push delivery is
+      // best-effort and must never turn a successful status update into a
+      // failure response.
+      try {
+        await sendPushToUser(admin, intro.matchmaker_id, title, body, { type: "intro_accepted" });
+      } catch (pushError) {
+        console.warn("respond-to-introduction: push delivery failed", pushError);
+      }
     }
 
     return new Response(JSON.stringify({ status: newStatus }), { status: 200 });
@@ -675,7 +697,15 @@ Deno.serve(async (req: Request) => {
     // Sent unconditionally, every time — no check of the recipient's
     // foreground/app-open state. Gating delivery on presence would make the
     // notification double as a read receipt, which Wing never has.
-    await sendPushToUser(admin, recipientId, title, body, { type: "message", chatId });
+    //
+    // The message is already committed at this point — push delivery is
+    // best-effort and must never turn a successful send into a failure
+    // response (a client retry on 500 would create a duplicate message).
+    try {
+      await sendPushToUser(admin, recipientId, title, body, { type: "message", chatId });
+    } catch (pushError) {
+      console.warn("send-message: push delivery failed", pushError);
+    }
 
     return new Response(
       JSON.stringify({ messageId: message.id, createdAt: message.created_at }),
