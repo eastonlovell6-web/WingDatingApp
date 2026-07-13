@@ -85,10 +85,16 @@ interface IntrosState {
 - `sendIntro` unshifts a new `SentIntro` onto `sentIntros`: `status: "pending"`,
   `sentAt` = today (ISO), names/avatars taken from the two `MatchmakerFriend`
   objects, `note` = the trimmed text, `id` = `String(Date.now())`.
-- `components/intros/SentIntroList.tsx` and `MatchmakerLeaderboardCard`
-  switch from importing `MOCK_SENT_INTROS` directly to reading
-  `useIntrosStore((s) => s.sentIntros)`, so the Intros tab reflects a new
-  send immediately without a screen reload.
+- `SentIntroList` and `SentIntroStats` are already presentational (they take
+  `intros: SentIntro[]` as a prop, no direct import). The actual call sites
+  to update are `app/(tabs)/intros.tsx` and `app/(tabs)/profile.tsx`, which
+  currently import `MOCK_SENT_INTROS` directly — both switch to reading
+  `useIntrosStore((s) => s.sentIntros)` instead, so the Intros tab and the
+  Profile screen's pending-intro banner reflect a new send immediately
+  without a screen reload.
+- `MatchmakerLeaderboardCard` is unaffected — it renders a separate
+  `LeaderboardEntry[]` (`mockLeaderboard.ts`), not `SentIntro[]`, and isn't
+  part of this change.
 - Matchmaker stats (`MOCK_MATCHMAKER_STATS` on the Profile screen) are not
   touched by this change — out of scope, separate screen/concern.
 
@@ -128,6 +134,11 @@ in the app. This is its first use.
   granted (`Notifications.requestPermissionsAsync()`), then fire one
   immediate local notification (`Notifications.scheduleNotificationAsync`
   with `trigger: null`) using `formatIntroNotification(firstNameOf(MOCK_PROFILE_USER.name))`.
+- `app/_layout.tsx` also needs a one-time `Notifications.setNotificationHandler(...)`
+  call (shouldShowBanner/shouldShowList) — without it, a notification fired
+  while the app is foregrounded (always true here, since the user just
+  tapped Send inside the app) won't display a banner at all on current Expo
+  SDKs.
 - This stands in for what each recipient's device would show — there's
   only one real device in this demo, so one local notification simulates
   the recipient experience rather than two real pushes to two real accounts.
