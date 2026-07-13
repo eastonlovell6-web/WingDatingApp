@@ -59,7 +59,12 @@ export default function FriendProfileScreen() {
           paddingHorizontal: spacing[4],
         }}
       >
-        <Pressable onPress={() => router.back()} hitSlop={8} accessibilityRole="button" accessibilityLabel="Back">
+        <Pressable
+          onPress={() => router.canGoBack() && router.back()}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Back"
+        >
           <BackIcon />
         </Pressable>
       </View>

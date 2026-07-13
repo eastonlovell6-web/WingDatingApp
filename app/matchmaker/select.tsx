@@ -121,7 +121,12 @@ export default function MatchmakerSelectScreen() {
           paddingTop: spacing[4],
         }}
       >
-        <Pressable onPress={() => router.back()} hitSlop={8} accessibilityRole="button" accessibilityLabel="Close">
+        <Pressable
+          onPress={() => router.canGoBack() && router.back()}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Close"
+        >
           <XIcon />
         </Pressable>
         <Text style={textStyles.eyebrow}>STEP 1 OF 2</Text>
@@ -130,7 +135,7 @@ export default function MatchmakerSelectScreen() {
       {showEncouragement ? (
         <MatchmakerEncouragementState
           onInvitePress={handleInvitePress}
-          onNotNowPress={() => router.back()}
+          onNotNowPress={() => router.canGoBack() && router.back()}
         />
       ) : (
         <>

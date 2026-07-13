@@ -84,7 +84,7 @@ export default function IntroDetailScreen() {
   function handleSkip() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     console.log(`[intro:${introId}] skipped`);
-    router.back();
+    if (router.canGoBack()) router.back();
   }
 
   // TODO: no "snoozed" status exists on `introductions` yet — this just
@@ -93,14 +93,16 @@ export default function IntroDetailScreen() {
   function handleSnooze() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     console.log(`[intro:${introId}] snoozed`);
-    router.back();
+    if (router.canGoBack()) router.back();
   }
 
   function handleAccept() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     acceptScale.value = withSequence(withSpring(1.06, spring), withSpring(1, spring));
     console.log(`[intro:${introId}] accepted`);
-    setTimeout(() => router.back(), 180);
+    setTimeout(() => {
+      if (router.canGoBack()) router.back();
+    }, 180);
   }
 
   return (
@@ -115,7 +117,12 @@ export default function IntroDetailScreen() {
           paddingBottom: spacing[4],
         }}
       >
-        <Pressable onPress={() => router.back()} hitSlop={8} accessibilityRole="button" accessibilityLabel="Back">
+        <Pressable
+          onPress={() => router.canGoBack() && router.back()}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Back"
+        >
           <BackIcon />
         </Pressable>
         {intro && <MatchmakerChip name={intro.matchmakerName} avatarUri={intro.matchmakerAvatarUri} />}

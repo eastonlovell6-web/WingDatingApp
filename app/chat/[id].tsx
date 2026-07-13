@@ -64,7 +64,7 @@ export default function ChatScreen() {
           elevation: 3,
         }}
       >
-        <Pressable onPress={() => router.back()} hitSlop={8}>
+        <Pressable onPress={() => router.canGoBack() && router.back()} hitSlop={8}>
           <BackIcon />
         </Pressable>
         <Avatar name={chat?.matchName ?? "?"} imageUri={chat?.matchAvatarUri} size={40} />

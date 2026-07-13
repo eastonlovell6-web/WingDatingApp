@@ -176,7 +176,7 @@ export default function PhoneEntry() {
             paddingHorizontal: 24,
           }}
         >
-          <Pressable onPress={() => router.back()} hitSlop={12}>
+          <Pressable onPress={() => router.canGoBack() && router.back()} hitSlop={12}>
             <ChevronLeft />
           </Pressable>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
