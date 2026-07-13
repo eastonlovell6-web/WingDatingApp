@@ -12,6 +12,12 @@ export interface FriendProfile {
   // Mirrors this friend's own visibility setting on being asked about via
   // Request an Intro — gates "See who [Name] could introduce you to".
   connectionsVisible: boolean;
+  // Whether this friend currently wants to be introduced to others at all
+  // (independent of canIntroduce/connectionsVisible, which are per-viewer
+  // permissions). false = solely a wingman right now — e.g. in a
+  // relationship — ANDed with canIntroduce to gate "Introduce to someone";
+  // never gates "See who ... could introduce you to".
+  lookingToGetSetUp: boolean;
 }
 
 // Throwaway fixture data until friend profiles are wired to Supabase. IDs
@@ -28,6 +34,7 @@ export const MOCK_FRIEND_PROFILES: Record<string, FriendProfile> = {
     ],
     canIntroduce: true,
     connectionsVisible: true,
+    lookingToGetSetUp: true,
   },
   "2": {
     id: "2",
@@ -42,6 +49,7 @@ export const MOCK_FRIEND_PROFILES: Record<string, FriendProfile> = {
     ],
     canIntroduce: true,
     connectionsVisible: true,
+    lookingToGetSetUp: true,
   },
   "3": {
     id: "3",
@@ -53,6 +61,7 @@ export const MOCK_FRIEND_PROFILES: Record<string, FriendProfile> = {
     ],
     canIntroduce: true,
     connectionsVisible: false,
+    lookingToGetSetUp: true,
   },
   "4": {
     id: "4",
@@ -64,6 +73,7 @@ export const MOCK_FRIEND_PROFILES: Record<string, FriendProfile> = {
     ],
     canIntroduce: true,
     connectionsVisible: true,
+    lookingToGetSetUp: false,
   },
   "5": {
     id: "5",
@@ -75,6 +85,7 @@ export const MOCK_FRIEND_PROFILES: Record<string, FriendProfile> = {
     ],
     canIntroduce: false,
     connectionsVisible: true,
+    lookingToGetSetUp: true,
   },
   "6": {
     id: "6",
@@ -89,6 +100,7 @@ export const MOCK_FRIEND_PROFILES: Record<string, FriendProfile> = {
     ],
     canIntroduce: true,
     connectionsVisible: true,
+    lookingToGetSetUp: true,
   },
   "7": {
     id: "7",
@@ -103,5 +115,6 @@ export const MOCK_FRIEND_PROFILES: Record<string, FriendProfile> = {
     ],
     canIntroduce: true,
     connectionsVisible: false,
+    lookingToGetSetUp: true,
   },
 };
