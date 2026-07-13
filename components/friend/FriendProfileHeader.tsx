@@ -1,5 +1,6 @@
 import { Text, View } from "react-native";
 import { Avatar } from "../ui/Avatar";
+import { Badge } from "../ui/Badge";
 import { ink } from "../../constants/colors";
 import { fonts, fontSize } from "../../constants/typography";
 import { spacing } from "../../constants/spacing";
@@ -8,9 +9,13 @@ interface FriendProfileHeaderProps {
   name: string;
   meta: string;
   avatarUri?: string;
+  // Shows a "Solely a wingman" badge under the meta line. Omit or pass
+  // false for friends who are looking to get set up (the default state
+  // gets no badge at all).
+  showWingmanBadge?: boolean;
 }
 
-export function FriendProfileHeader({ name, meta, avatarUri }: FriendProfileHeaderProps) {
+export function FriendProfileHeader({ name, meta, avatarUri, showWingmanBadge }: FriendProfileHeaderProps) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: spacing[4] }}>
       <Avatar name={name} imageUri={avatarUri} size={72} />
@@ -38,6 +43,11 @@ export function FriendProfileHeader({ name, meta, avatarUri }: FriendProfileHead
         >
           {meta}
         </Text>
+        {showWingmanBadge && (
+          <View style={{ marginTop: 4 }}>
+            <Badge label="Solely a wingman" tone="plum" />
+          </View>
+        )}
       </View>
     </View>
   );
