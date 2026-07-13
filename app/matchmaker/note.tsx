@@ -60,6 +60,7 @@ export default function MatchmakerNoteScreen() {
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     useIntrosStore.getState().sendIntro(friendA, friendB, note.trim());
+    setConfirming(true);
 
     const { status } = await Notifications.getPermissionsAsync();
     let granted = status === "granted";
