@@ -41,7 +41,7 @@ import {
   MOCK_RANK_PROGRESS,
 } from "../../components/profile/mockProfile";
 import type { PrivacySettings, ProfilePrompt } from "../../components/profile/mockProfile";
-import { MOCK_SENT_INTROS } from "../../components/intros/mockSentIntros";
+import { useIntrosStore } from "../../store/intros";
 
 const SEGMENTS = ["Profile", "Matchmaker", "Privacy"];
 
@@ -177,7 +177,8 @@ export default function ProfileScreen() {
     setPromptEditor(null);
   }
 
-  const pendingIntro = MOCK_SENT_INTROS.find((intro) => intro.status === "pending");
+  const sentIntros = useIntrosStore((s) => s.sentIntros);
+  const pendingIntro = sentIntros.find((intro) => intro.status === "pending");
 
   return (
     <View style={{ flex: 1, backgroundColor: surface.cream }}>
