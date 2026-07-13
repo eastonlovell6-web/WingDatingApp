@@ -784,11 +784,16 @@ import Constants from "expo-constants";
 import { Platform } from "react-native";
 import { supabase } from "./supabase";
 
-// `app/_layout.tsx` already calls Notifications.setNotificationHandler at
-// module load — a second call here would silently overwrite it with a
-// different (and deprecated, shouldShowAlert-based) config depending on
-// import order. Registration/routing only; the handler stays owned by the
-// root layout.
+// Without an explicit handler, notifications fired while the app is
+// foregrounded don't show a banner on current Expo SDKs.
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+});
 
 export type WingNotificationData =
   | { type: "intro"; introId: string }
