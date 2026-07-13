@@ -36,12 +36,24 @@ Deno.serve(async (req: Request) => {
     const isUserA = callerId === intro.user_a_id;
 
     if (response === "pass") {
-      const { error: updateError } = await admin
+      // Guard the write with the status we just read (`.eq("status", ...)`)
+      // so a concurrent response from the other participant can't be
+      // silently clobbered — see the accept branch below for why this
+      // matters more there. If nothing matched, the row moved between our
+      // read and write; fail closed and let the caller retry against the
+      // now-current state.
+      const { data: updated, error: updateError } = await admin
         .from("introductions")
         .update({ status: "passed" })
-        .eq("id", introId);
+        .eq("id", introId)
+        .eq("status", intro.status)
+        .select("id")
+        .maybeSingle();
       if (updateError) {
         return new Response(JSON.stringify({ error: updateError.message }), { status: 500 });
+      }
+      if (!updated) {
+        return new Response(JSON.stringify({ error: "This introduction changed — try again" }), { status: 409 });
       }
       // Silent rejection: no notification to anyone, ever.
       return new Response(JSON.stringify({ status: "passed" }), { status: 200 });
@@ -58,12 +70,29 @@ Deno.serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: "You've already responded to this introduction" }), { status: 409 });
     }
 
-    const { error: updateError } = await admin
+    // Same compare-and-swap guard as the pass branch. Without it, two
+    // participants accepting at the same instant can both read
+    // "both_pending", independently compute "pending_b" and "pending_a",
+    // and whichever write lands last silently overwrites the other —
+    // leaving the row on a pending status forever with neither accept
+    // recorded, so the matchmaker never gets notified even though both
+    // people genuinely accepted. Guarding the update on the status we read
+    // makes the loser's write a no-op (`updated` is null) instead of a
+    // silent overwrite; the loser gets a 409 and their client retries,
+    // which reads the now-current status and computes the correct
+    // transition.
+    const { data: updated, error: updateError } = await admin
       .from("introductions")
       .update({ status: newStatus })
-      .eq("id", introId);
+      .eq("id", introId)
+      .eq("status", intro.status)
+      .select("id")
+      .maybeSingle();
     if (updateError) {
       return new Response(JSON.stringify({ error: updateError.message }), { status: 500 });
+    }
+    if (!updated) {
+      return new Response(JSON.stringify({ error: "This introduction changed — try again" }), { status: 409 });
     }
 
     if (newStatus === "accepted") {
