@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { HomeHeader } from "../../components/home/HomeHeader";
 import { IntroFeed } from "../../components/home/IntroFeed";
 import { FriendsRow } from "../../components/home/FriendsRow";
+import { WingCardStack } from "../../components/home/WingCardStack";
 import { PromptCard } from "../../components/home/PromptCard";
 import { MOCK_INTROS } from "../../components/intro/mockIntros";
 import { MOCK_FRIENDS } from "../../components/home/friendsMock";
@@ -48,7 +49,7 @@ export default function HomeScreen() {
         contentContainerStyle={{
           paddingTop: insets.top + spacing[4],
           // Reserve the full floating tab bar + FAB overhang, plus breathing
-          // room, so the FriendsRow never sits underneath the FAB.
+          // room, so the last section never sits underneath the FAB.
           paddingBottom: insets.bottom + TAB_BAR_CLEARANCE + spacing[4],
           paddingHorizontal: spacing[6],
           gap: spacing[8],
@@ -60,7 +61,7 @@ export default function HomeScreen() {
         ) : (
           <IntroFeed intros={MOCK_INTROS} />
         )}
-        <FriendsRow friends={MOCK_FRIENDS} />
+        {isWingman ? <WingCardStack friends={MOCK_FRIENDS} /> : <FriendsRow friends={MOCK_FRIENDS} />}
       </ScrollView>
     </View>
   );
