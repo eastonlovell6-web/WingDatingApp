@@ -37,3 +37,12 @@ export const MOCK_MATCHMAKER_FRIENDS: MatchmakerFriend[] = [
   { id: "6", name: "Ana Sousa", canIntroduce: true, activePendingCount: 3, lookingToGetSetUp: true },
   { id: "7", name: "Kai Fischer", canIntroduce: true, activePendingCount: 2, lookingToGetSetUp: true },
 ];
+
+// The wingman's introducible friends for the daily-prompt flow — friends
+// who've opted this user in to introduce them. Reordered elsewhere by
+// keyword match, never filtered further here (lookingToGetSetUp / pending
+// cap are re-checked downstream by getFriendEligibility when the picked
+// friend lands on Matchmaker Step 1 via ?preselect=).
+export function getIntroducibleFriends(): MatchmakerFriend[] {
+  return MOCK_MATCHMAKER_FRIENDS.filter((friend) => friend.canIntroduce);
+}
