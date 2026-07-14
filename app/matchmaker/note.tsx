@@ -31,6 +31,28 @@ function XIcon() {
   );
 }
 
+/**
+ * supabase-js's FunctionsHttpError always has a generic .message ("Edge
+ * Function returned a non-2xx status code") — the Edge Function's actual
+ * JSON error body is only reachable via .context, a raw Response. Same
+ * detection pattern lib/introductions.ts's respondToIntroduction already
+ * uses for its 409 check.
+ */
+async function extractSendErrorMessage(err: unknown): Promise<string> {
+  if (err && typeof err === "object" && "context" in err) {
+    const context = (err as { context?: unknown }).context;
+    if (context instanceof Response) {
+      try {
+        const body = await context.clone().json();
+        if (typeof body?.error === "string") return body.error;
+      } catch {
+        // Fall through to the generic message below.
+      }
+    }
+  }
+  return err instanceof Error ? err.message : "Couldn't send that intro. Try again.";
+}
+
 export default function MatchmakerNoteScreen() {
   const { friendAId, friendBId } = useLocalSearchParams<{ friendAId?: string; friendBId?: string }>();
   const insets = useSafeAreaInsets();
@@ -81,7 +103,7 @@ export default function MatchmakerNoteScreen() {
       useIntrosStore.getState().sendIntro(friendA, friendB, note.trim());
       setConfirming(true);
     } catch (err) {
-      setSendError(err instanceof Error ? err.message : "Couldn't send that intro. Try again.");
+      setSendError(await extractSendErrorMessage(err));
     } finally {
       setSending(false);
     }
