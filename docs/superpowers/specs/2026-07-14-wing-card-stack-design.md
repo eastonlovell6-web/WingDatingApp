@@ -64,9 +64,11 @@ presentation differs.
 Horizontal `ScrollView` with snap-to-card paging:
 
 - Measures its own available width via `onLayout` (same pattern
-  `FriendPickerGrid` already uses for its own width-dependent layout).
-- `snapToInterval={cardWidth + gap}`, `decelerationRate="fast"`,
-  `showsHorizontalScrollIndicator={false}`.
+  `FriendPhotoPromptPanel`'s `ReadOnlyPhotoCarousel` already uses for its
+  own width-dependent layout).
+- `pagingEnabled`, `showsHorizontalScrollIndicator={false}` — matches
+  `ReadOnlyPhotoCarousel` exactly rather than a hand-rolled
+  `snapToInterval`, since each page is the full container width.
 - No pan-gesture/rotation physics (that would only make sense if a swipe
   meant a real accept/reject decision, and it doesn't here — tapping a
   card still opens the profile, same low-stakes browsing as today's row).
@@ -164,8 +166,8 @@ runtime, keeping `WingFriend` a plain literal array as it is today).
     (full-bleed photo cards) instead of `FriendsRow` below `PromptCard`.
   - A `role: "wing-me"` (or null) profile's Home screen is visually
     unchanged — still the small-avatar `FriendsRow`.
-  - Swiping through the card stack pages one friend at a time with a
-    visible next-card peek and dot indicator updating.
+  - Swiping through the card stack pages one friend at a time (full-width
+    pages, no peek) with the dot indicator updating.
   - Tapping a card navigates to `/friend/[friendId]` for that friend,
     identical destination to tapping today's avatar.
   - Each friend's real photo (from `mockFriendProfiles.ts`) displays,
