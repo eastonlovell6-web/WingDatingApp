@@ -100,6 +100,10 @@ export default function RootLayout() {
               name="matchmaker/prompt-friends"
               options={{ presentation: "modal", animation: "slide_from_bottom" }}
             />
+            <Stack.Screen
+              name="request/[friendId]"
+              options={{ presentation: "modal", animation: "slide_from_bottom" }}
+            />
           </Stack>
           {__DEV__ && <DevNav />}
         </QueryClientProvider>
