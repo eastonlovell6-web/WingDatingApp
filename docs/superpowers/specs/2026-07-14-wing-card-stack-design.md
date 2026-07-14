@@ -46,13 +46,18 @@ presentation differs.
 - Name: friend's first name, `fonts.display` (Bricolage Grotesque),
   white, positioned bottom-left over the scrim — same visual language as
   `IntroNoteCard`.
-- Card height: fixed, 340 (portrait-leaning photo ratio, roughly matches
-  card width on a standard phone screen).
-- Next-card peek: `spacing[4]` (16px) of the following card's edge shows
-  at the right side (card width = available width minus this gap),
-  signaling swipeability the same way `FriendsRow`'s fade gradient hints
-  at more content today. Keeps to the 4px spacing scale per this
-  project's "no magic numbers" spacing rule.
+- Card size: `aspectRatio: 4/5` at the section's full available width
+  (portrait-leaning photo ratio) — matches the existing
+  `ReadOnlyPhotoCarousel` convention in
+  `components/friend/FriendPhotoPromptPanel.tsx` rather than a fixed
+  pixel height, so it scales correctly across phone widths.
+- No next-card peek. During planning this was reconsidered in favor of
+  reusing `FriendPhotoPromptPanel`'s existing full-width-paging-plus-dots
+  carousel pattern verbatim (`ReadOnlyPhotoCarousel` + `CarouselDots`) —
+  that component already solves "signal there's more to swipe" via the
+  dot row, and matching it exactly keeps this app's second photo-carousel
+  implementation consistent with its first instead of introducing a new
+  one-off peek affordance.
 
 ### Swipe mechanic
 
