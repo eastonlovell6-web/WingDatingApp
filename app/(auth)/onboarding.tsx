@@ -72,6 +72,7 @@ function StepDots({ step }: { step: number }) {
 export default function Onboarding() {
   const insets = useSafeAreaInsets();
   const user = useAuthStore((s) => s.user);
+  const isInitializing = useAuthStore((s) => s.isInitializing);
   // Set on the "What brings you to Wing?" screen; shapes the photos headline.
   const { intent } = useLocalSearchParams<{ intent?: string }>();
   const role: OnboardingIntent = intent === "wing-somebody" ? "wing-somebody" : "wing-me";
@@ -83,6 +84,7 @@ export default function Onboarding() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [isSavingName, setIsSavingName] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
   const [photos, setPhotos] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   // can_introduce defaults false for every friend — explicit opt-in only.
@@ -92,12 +94,18 @@ export default function Onboarding() {
     const trimmedFirst = firstName.trim();
     const trimmedLast = lastName.trim();
     if (!trimmedFirst || !trimmedLast || !user?.id) return;
+    setNameError(null);
     setIsSavingName(true);
     try {
       await upsertUserProfile(user.id, { name: `${trimmedFirst} ${trimmedLast}`, role });
       setStep(1);
     } catch (err) {
       console.error("Failed to save name:", err);
+      const detail =
+        __DEV__ && err && typeof err === "object" && "message" in err
+          ? ` (${(err as { message: string }).message})`
+          : "";
+      setNameError(`Something went wrong saving your name. Please try again.${detail}`);
     } finally {
       setIsSavingName(false);
     }
@@ -180,6 +188,17 @@ export default function Onboarding() {
     setVisibility({});
   }
 
+  // The only two entry points into this screen are verify.tsx (after a real
+  // phone-auth session is established) and DevNav's dev-only jumper (which
+  // skips auth entirely). Without this guard, reaching the name step with no
+  // session makes handleNameContinue's `!user?.id` check silently no-op on
+  // every tap — Continue looks broken with zero feedback. Gated on
+  // `isInitializing` so a cold-start session that's still hydrating isn't
+  // mistaken for "no session".
+  if (!isInitializing && !user) {
+    return <Redirect href="/(auth)" />;
+  }
+
   if (step >= 4) {
     return <Redirect href="/(tabs)" />;
   }
@@ -201,6 +220,7 @@ export default function Onboarding() {
         }}
         onContinue={handleNameContinue}
         isSaving={isSavingName}
+        error={nameError}
       />
     );
   }

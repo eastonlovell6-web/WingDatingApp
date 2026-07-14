@@ -48,6 +48,7 @@ interface NameStepProps {
   onBack: () => void;
   onContinue: () => void;
   isSaving?: boolean;
+  error?: string | null;
 }
 
 export function NameStep({
@@ -58,6 +59,7 @@ export function NameStep({
   onBack,
   onContinue,
   isSaving,
+  error,
 }: NameStepProps) {
   const insets = useSafeAreaInsets();
   const firstNameRef = useRef<TextInput>(null);
@@ -157,6 +159,20 @@ export function NameStep({
             disabled={!canContinue || isSaving}
             loading={isSaving}
           />
+          {error !== null && error !== undefined && (
+            <Text
+              style={{
+                fontFamily: fonts.body,
+                fontSize: 14,
+                lineHeight: 20,
+                color: coral[500],
+                textAlign: "center",
+                marginTop: 12,
+              }}
+            >
+              {error}
+            </Text>
+          )}
         </View>
       </KeyboardAvoidingView>
     </View>
