@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
@@ -9,15 +9,15 @@ import Animated, {
   withSequence,
   withSpring,
 } from "react-native-reanimated";
+import { useQuery } from "@tanstack/react-query";
 import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
 import { FriendPickerGrid } from "../../components/matchmaker/FriendPickerGrid";
 import { MatchmakerEncouragementState } from "../../components/matchmaker/MatchmakerEncouragementState";
-import {
-  MOCK_MATCHMAKER_FRIENDS,
-  getFriendEligibility,
-} from "../../components/matchmaker/mockMatchmakerFriends";
-import { ink, surface } from "../../constants/colors";
+import { getFriendEligibility } from "../../components/matchmaker/mockMatchmakerFriends";
+import { getMatchmakerFriends } from "../../lib/friendships";
+import { useAuthStore } from "../../store/auth";
+import { coral, ink, surface } from "../../constants/colors";
 import { textStyles } from "../../constants/typography";
 import { radii, spacing } from "../../constants/spacing";
 
@@ -41,25 +41,36 @@ export default function MatchmakerSelectScreen() {
   const { preselect } = useLocalSearchParams<{ preselect?: string }>();
   const insets = useSafeAreaInsets();
   const [search, setSearch] = useState("");
-  const [selectedIds, setSelectedIds] = useState<string[]>(() => {
-    if (!preselect) return [];
-    const preselectedFriend = MOCK_MATCHMAKER_FRIENDS.find((f) => f.id === preselect);
-    if (!preselectedFriend || getFriendEligibility(preselectedFriend) !== "eligible") return [];
-    return [preselect];
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const preselectAppliedRef = useRef(false);
+
+  const userId = useAuthStore((s) => s.user?.id);
+  const { data: friends = [], isLoading } = useQuery({
+    queryKey: ["matchmakerFriends", userId],
+    queryFn: () => getMatchmakerFriends(userId!),
+    enabled: !!userId,
   });
 
-  const eligibleCount = MOCK_MATCHMAKER_FRIENDS.filter(
-    (f) => getFriendEligibility(f) === "eligible"
-  ).length;
-  const showEncouragement = eligibleCount < 2;
+  // Runs once, the first time friends data is available, so a background
+  // refetch later doesn't stomp on selections the user already made by hand.
+  useEffect(() => {
+    if (preselectAppliedRef.current || friends.length === 0) return;
+    preselectAppliedRef.current = true;
+    if (!preselect) return;
+    const preselectedFriend = friends.find((f) => f.id === preselect);
+    if (preselectedFriend && getFriendEligibility(preselectedFriend) === "eligible") {
+      setSelectedIds([preselect]);
+    }
+  }, [preselect, friends]);
 
-  const filteredFriends = MOCK_MATCHMAKER_FRIENDS.filter((f) =>
+  const eligibleCount = friends.filter((f) => getFriendEligibility(f) === "eligible").length;
+  const showEncouragement = !isLoading && eligibleCount < 2;
+
+  const filteredFriends = friends.filter((f) =>
     f.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const selectedFriends = selectedIds.map(
-    (id) => MOCK_MATCHMAKER_FRIENDS.find((f) => f.id === id)!
-  );
+  const selectedFriends = selectedIds.map((id) => friends.find((f) => f.id === id)!);
   const canContinue = selectedIds.length === 2;
 
   const buttonScale = useSharedValue(1);
@@ -132,7 +143,11 @@ export default function MatchmakerSelectScreen() {
         <Text style={textStyles.eyebrow}>STEP 1 OF 2</Text>
       </View>
 
-      {showEncouragement ? (
+      {isLoading ? (
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+          <ActivityIndicator color={coral[500]} />
+        </View>
+      ) : showEncouragement ? (
         <MatchmakerEncouragementState
           onInvitePress={handleInvitePress}
           onNotNowPress={() => router.canGoBack() && router.back()}
