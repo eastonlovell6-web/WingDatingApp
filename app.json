@@ -35,12 +35,20 @@
         "expo-image-picker",
         {
           "photosPermission": "Wing needs your photos to build your profile.",
-          "cameraPermission": "Wing uses the camera so you can take your profile photo."
+          "cameraPermission": "Wing uses the camera so you can take your profile photo.",
+          "microphonePermission": false
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "2072b8c0-9b47-49b3-986a-1c5d7d313755"
+      }
+    },
+    "owner": "eastonlovell"
   }
 }
