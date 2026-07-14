@@ -11,6 +11,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="intros" />
       <Tabs.Screen name="chats" />
       <Tabs.Screen name="profile" />
+      <Tabs.Screen name="discover" options={{ href: null }} />
     </Tabs>
   );
 }

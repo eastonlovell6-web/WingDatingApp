@@ -10,7 +10,7 @@ import { SelectedPairHeader } from "../../components/matchmaker/SelectedPairHead
 import { NoteComposerCard } from "../../components/matchmaker/NoteComposerCard";
 import { SendConfirmationOverlay } from "../../components/matchmaker/SendConfirmationOverlay";
 import { getMatchmakerFriends } from "../../lib/friendships";
-import { sendIntroduction } from "../../lib/introductions";
+import { extractFunctionErrorMessage, sendIntroduction } from "../../lib/introductions";
 import { useAuthStore } from "../../store/auth";
 import { coral, ink, surface } from "../../constants/colors";
 import { textStyles } from "../../constants/typography";
@@ -28,28 +28,6 @@ function XIcon() {
       />
     </Svg>
   );
-}
-
-/**
- * supabase-js's FunctionsHttpError always has a generic .message ("Edge
- * Function returned a non-2xx status code") — the Edge Function's actual
- * JSON error body is only reachable via .context, a raw Response. Same
- * detection pattern lib/introductions.ts's respondToIntroduction already
- * uses for its 409 check.
- */
-async function extractSendErrorMessage(err: unknown): Promise<string> {
-  if (err && typeof err === "object" && "context" in err) {
-    const context = (err as { context?: unknown }).context;
-    if (context instanceof Response) {
-      try {
-        const body = await context.clone().json();
-        if (typeof body?.error === "string") return body.error;
-      } catch {
-        // Fall through to the generic message below.
-      }
-    }
-  }
-  return err instanceof Error ? err.message : "Couldn't send that intro. Try again.";
 }
 
 export default function MatchmakerNoteScreen() {
@@ -99,7 +77,7 @@ export default function MatchmakerNoteScreen() {
       queryClient.invalidateQueries({ queryKey: ["sentIntroductions", userId] });
       setConfirming(true);
     } catch (err) {
-      setSendError(await extractSendErrorMessage(err));
+      setSendError(await extractFunctionErrorMessage(err, "Couldn't send that intro. Try again."));
     } finally {
       setSending(false);
     }

@@ -10,6 +10,7 @@ import { elevation } from "../../constants/elevation";
 interface SendConfirmationOverlayProps {
   visible: boolean;
   onDismiss: () => void;
+  message?: string;
 }
 
 function CheckIcon() {
@@ -31,7 +32,11 @@ function CheckIcon() {
  * micro-interaction specified in CLAUDE.md. Auto-dismisses via onDismiss
  * 1.5s after becoming visible.
  */
-export function SendConfirmationOverlay({ visible, onDismiss }: SendConfirmationOverlayProps) {
+export function SendConfirmationOverlay({
+  visible,
+  onDismiss,
+  message = "Your intro is on its way",
+}: SendConfirmationOverlayProps) {
   useEffect(() => {
     if (!visible) return;
     const timer = setTimeout(onDismiss, 1500);
@@ -89,7 +94,7 @@ export function SendConfirmationOverlay({ visible, onDismiss }: SendConfirmation
             textAlign: "center",
           }}
         >
-          Your intro is on its way
+          {message}
         </Text>
       </View>
     </Animated.View>

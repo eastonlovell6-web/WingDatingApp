@@ -1,6 +1,7 @@
 import { ScrollView, View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { router } from "expo-router";
 import { HomeHeader } from "../../components/home/HomeHeader";
 import { IntroFeed } from "../../components/home/IntroFeed";
 import { FriendsRow } from "../../components/home/FriendsRow";
@@ -55,7 +56,12 @@ export default function HomeScreen() {
           gap: spacing[8],
         }}
       >
-        <HomeHeader name={name} loading={!!userId && isLoading} subhead={introSubhead} />
+        <HomeHeader
+          name={name}
+          loading={!!userId && isLoading}
+          subhead={introSubhead}
+          onDiscoverPress={() => router.push("/discover" as never)}
+        />
         {isWingman ? (
           <PromptCard prompt={getTodaysPrompt()} introducibleCount={getIntroducibleFriends().length} />
         ) : (

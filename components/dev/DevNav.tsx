@@ -25,6 +25,8 @@ const ROUTES: Route[] = [
   { label: "Verify", href: "/(auth)/verify" },
   { label: "Onboarding", href: "/(auth)/onboarding" },
   { label: "Home", href: "/(tabs)" },
+  { label: "Discover", href: "/discover" },
+  { label: "Request intro", href: "/request/d1?mutualIds=1" },
   { label: "Friend profile", href: "/friend/1" },
   { label: "Matchmaker · Select", href: "/matchmaker/select" },
   { label: "Intro detail", href: "/intro/1" },

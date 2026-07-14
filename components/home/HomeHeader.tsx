@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import Animated, {
   Easing,
   FadeInDown,
@@ -10,6 +10,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { Button } from "../ui/Button";
 import { WingMark } from "../ui/WingMark";
+import Svg, { Circle, Path } from "react-native-svg";
 import { coral, ink, plum } from "../../constants/colors";
 import { fonts, fontSize } from "../../constants/typography";
 import { radii, spacing } from "../../constants/spacing";
@@ -19,9 +20,19 @@ interface HomeHeaderProps {
   loading?: boolean;
   subhead?: string;
   onInvitePress?: () => void;
+  onDiscoverPress?: () => void;
 }
 
-export function HomeHeader({ name, loading, subhead, onInvitePress }: HomeHeaderProps) {
+function DiscoverIcon() {
+  return (
+    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+      <Circle cx="11" cy="11" r="7" stroke={ink[900]} strokeWidth={2} />
+      <Path d="M21 21l-4.3-4.3" stroke={ink[900]} strokeWidth={2} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+export function HomeHeader({ name, loading, subhead, onInvitePress, onDiscoverPress }: HomeHeaderProps) {
   return (
     <Animated.View entering={FadeInDown.duration(250)} style={{ gap: spacing[2] }}>
       <View
@@ -54,12 +65,22 @@ export function HomeHeader({ name, loading, subhead, onInvitePress }: HomeHeader
           )}
         </View>
 
-        <Button
-          title="Invite"
-          variant="outline"
-          onPress={onInvitePress}
-          style={{ height: 44, paddingHorizontal: 16, borderColor: plum[100] }}
-        />
+        <View style={{ flexDirection: "row", alignItems: "center", gap: spacing[2] }}>
+          <Pressable
+            onPress={onDiscoverPress}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Discover"
+          >
+            <DiscoverIcon />
+          </Pressable>
+          <Button
+            title="Invite"
+            variant="outline"
+            onPress={onInvitePress}
+            style={{ height: 44, paddingHorizontal: 16, borderColor: plum[100] }}
+          />
+        </View>
       </View>
 
       {!loading && subhead && (
