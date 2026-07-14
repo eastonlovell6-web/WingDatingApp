@@ -78,8 +78,8 @@ export async function registerForPushNotificationsAsync(userId: string): Promise
   }
 }
 
-/** Maps a notification's data payload to the screen it should open. */
-export function routeForNotificationData(data: WingNotificationData): string {
+/** Maps a notification's data payload to the screen it should open, or null if unrecognized. */
+export function routeForNotificationData(data: WingNotificationData): string | null {
   switch (data.type) {
     case "intro":
       return `/intro/${data.introId}`;
@@ -89,5 +89,7 @@ export function routeForNotificationData(data: WingNotificationData): string {
       return "/(tabs)/intros";
     case "intro_request":
       return "/(tabs)";
+    default:
+      return null;
   }
 }

@@ -67,9 +67,17 @@ export default function RootLayout() {
   }, [user]);
 
   useEffect(() => {
+    Notifications.getLastNotificationResponseAsync().then((response) => {
+      if (!response) return;
+      const data = response.notification.request.content.data as WingNotificationData;
+      const path = routeForNotificationData(data);
+      if (path) router.push(path);
+    });
+
     const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
       const data = response.notification.request.content.data as WingNotificationData;
-      router.push(routeForNotificationData(data));
+      const path = routeForNotificationData(data);
+      if (path) router.push(path);
     });
     return () => subscription.remove();
   }, []);

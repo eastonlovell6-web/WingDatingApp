@@ -23,6 +23,28 @@ Deno.serve(async (req: Request) => {
 
     const admin = createAdminClient();
 
+    const activeStatuses = ["both_pending", "pending_a", "pending_b"];
+    async function countActivePending(userId: string): Promise<number> {
+      const [asA, asB] = await Promise.all([
+        admin.from("introductions").select("id", { count: "exact", head: true })
+          .eq("user_a_id", userId).in("status", activeStatuses),
+        admin.from("introductions").select("id", { count: "exact", head: true })
+          .eq("user_b_id", userId).in("status", activeStatuses),
+      ]);
+      return (asA.count ?? 0) + (asB.count ?? 0);
+    }
+
+    const [countA, countB] = await Promise.all([
+      countActivePending(userAId),
+      countActivePending(userBId),
+    ]);
+    if (countA >= 3 || countB >= 3) {
+      return new Response(
+        JSON.stringify({ error: "One of these people already has the maximum of 3 pending intros" }),
+        { status: 429 }
+      );
+    }
+
     const { data: intro, error: insertError } = await admin
       .from("introductions")
       .insert({
