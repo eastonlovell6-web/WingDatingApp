@@ -2,6 +2,28 @@
 import { supabase } from "./supabase";
 import type { SentIntro } from "../components/intros/mockSentIntros";
 
+/**
+ * supabase-js's FunctionsHttpError always has a generic .message ("Edge
+ * Function returned a non-2xx status code") — the Edge Function's actual
+ * JSON error body is only reachable via .context, a raw Response. Shared by
+ * every screen that sends through an Edge Function and wants the real
+ * server-side error surfaced instead of that generic string.
+ */
+export async function extractFunctionErrorMessage(err: unknown, fallback: string): Promise<string> {
+  if (err && typeof err === "object" && "context" in err) {
+    const context = (err as { context?: unknown }).context;
+    if (context instanceof Response) {
+      try {
+        const body = await context.clone().json();
+        if (typeof body?.error === "string") return body.error;
+      } catch {
+        // Fall through to the fallback below.
+      }
+    }
+  }
+  return err instanceof Error ? err.message : fallback;
+}
+
 export async function sendIntroduction(userAId: string, userBId: string, note: string): Promise<string> {
   const { data, error } = await supabase.functions.invoke<{ introId: string }>("send-introduction", {
     body: { userAId, userBId, note },
