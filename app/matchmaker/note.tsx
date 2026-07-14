@@ -4,16 +4,16 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import * as Haptics from "expo-haptics";
-import * as Notifications from "expo-notifications";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "../../components/ui/Button";
 import { SelectedPairHeader } from "../../components/matchmaker/SelectedPairHeader";
 import { NoteComposerCard } from "../../components/matchmaker/NoteComposerCard";
 import { SendConfirmationOverlay } from "../../components/matchmaker/SendConfirmationOverlay";
-import { MOCK_MATCHMAKER_FRIENDS } from "../../components/matchmaker/mockMatchmakerFriends";
-import { MOCK_PROFILE_USER } from "../../components/profile/mockProfile";
+import { getMatchmakerFriends } from "../../lib/friendships";
+import { sendIntroduction } from "../../lib/introductions";
+import { useAuthStore } from "../../store/auth";
 import { useIntrosStore } from "../../store/intros";
-import { formatIntroNotification } from "../../lib/notifications";
-import { ink, surface } from "../../constants/colors";
+import { coral, ink, surface } from "../../constants/colors";
 import { textStyles } from "../../constants/typography";
 import { radii, spacing } from "../../constants/spacing";
 
@@ -31,23 +31,56 @@ function XIcon() {
   );
 }
 
+/**
+ * supabase-js's FunctionsHttpError always has a generic .message ("Edge
+ * Function returned a non-2xx status code") — the Edge Function's actual
+ * JSON error body is only reachable via .context, a raw Response. Same
+ * detection pattern lib/introductions.ts's respondToIntroduction already
+ * uses for its 409 check.
+ */
+async function extractSendErrorMessage(err: unknown): Promise<string> {
+  if (err && typeof err === "object" && "context" in err) {
+    const context = (err as { context?: unknown }).context;
+    if (context instanceof Response) {
+      try {
+        const body = await context.clone().json();
+        if (typeof body?.error === "string") return body.error;
+      } catch {
+        // Fall through to the generic message below.
+      }
+    }
+  }
+  return err instanceof Error ? err.message : "Couldn't send that intro. Try again.";
+}
+
 export default function MatchmakerNoteScreen() {
   const { friendAId, friendBId } = useLocalSearchParams<{ friendAId?: string; friendBId?: string }>();
   const insets = useSafeAreaInsets();
   const [note, setNote] = useState("");
   const [confirming, setConfirming] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
 
-  const friendA = MOCK_MATCHMAKER_FRIENDS.find((f) => f.id === friendAId);
-  const friendB = MOCK_MATCHMAKER_FRIENDS.find((f) => f.id === friendBId);
+  const userId = useAuthStore((s) => s.user?.id);
+  const { data: friends = [] } = useQuery({
+    queryKey: ["matchmakerFriends", userId],
+    queryFn: () => getMatchmakerFriends(userId!),
+    enabled: !!userId,
+  });
+
+  const friendA = friends.find((f) => f.id === friendAId);
+  const friendB = friends.find((f) => f.id === friendBId);
 
   // Malformed/direct deep link with no matching friends — not reachable via
   // the app's own navigation (select.tsx only ever passes eligible ids), so
-  // this just backs out rather than showing a dedicated error state.
+  // this just backs out rather than showing a dedicated error state. Gated
+  // on friends.length > 0 so this doesn't fire while the query is still
+  // loading (friendA/friendB are legitimately undefined until then).
   useEffect(() => {
-    if (!friendA || !friendB) {
+    if (friends.length > 0 && (!friendA || !friendB)) {
       router.canGoBack() && router.back();
     }
-  }, [friendA, friendB]);
+  }, [friends, friendA, friendB]);
 
   if (!friendA || !friendB) {
     return null;
@@ -56,24 +89,23 @@ export default function MatchmakerNoteScreen() {
   const canSend = note.trim().length > 0;
 
   async function handleSend() {
-    if (confirming || !friendA || !friendB || !canSend) return;
+    if (confirming || sending || !friendA || !friendB || !canSend) return;
 
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    useIntrosStore.getState().sendIntro(friendA, friendB, note.trim());
-    setConfirming(true);
-
-    const { status } = await Notifications.getPermissionsAsync();
-    let granted = status === "granted";
-    if (!granted && status !== "denied") {
-      const requested = await Notifications.requestPermissionsAsync();
-      granted = requested.status === "granted";
-    }
-    if (granted) {
-      const matchmakerFirstName = MOCK_PROFILE_USER.name.split(" ")[0];
-      await Notifications.scheduleNotificationAsync({
-        content: formatIntroNotification(matchmakerFirstName),
-        trigger: null,
-      });
+    setSending(true);
+    setSendError(null);
+    try {
+      await sendIntroduction(friendA.id, friendB.id, note.trim());
+      // Temporary bridge: the Intros tab (sent-history list) is still
+      // mock-backed, out of scope for this task. Keeping this optimistic
+      // append preserves "my just-sent intro shows up there" continuity
+      // until that tab gets its own real-data wiring.
+      useIntrosStore.getState().sendIntro(friendA, friendB, note.trim());
+      setConfirming(true);
+    } catch (err) {
+      setSendError(await extractSendErrorMessage(err));
+    } finally {
+      setSending(false);
     }
   }
 
@@ -146,7 +178,22 @@ export default function MatchmakerNoteScreen() {
           borderTopColor: ink[200],
         }}
       >
-        <Button title="Send intro" onPress={handleSend} disabled={!canSend || confirming} />
+        {sendError && (
+          <Text
+            style={[
+              textStyles.caption,
+              { color: coral[500], textAlign: "center", marginBottom: spacing[2] },
+            ]}
+          >
+            {sendError}
+          </Text>
+        )}
+        <Button
+          title="Send intro"
+          onPress={handleSend}
+          disabled={!canSend || confirming}
+          loading={sending}
+        />
       </View>
 
       <SendConfirmationOverlay visible={confirming} onDismiss={handleConfirmationDismiss} />
