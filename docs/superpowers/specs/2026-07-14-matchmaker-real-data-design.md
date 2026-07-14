@@ -2,7 +2,7 @@
 
 ## Context
 
-`components/matchmaker/select.tsx` (Step 1) and `app/matchmaker/note.tsx` (Step 2)
+`app/matchmaker/select.tsx` (Step 1) and `app/matchmaker/note.tsx` (Step 2)
 currently run entirely on `MOCK_MATCHMAKER_FRIENDS` and a local Zustand store
 (`store/intros.ts`). The real backend already exists: a `friendships` table
 (`user_id, friend_id, can_introduce`), an `introductions` table, and a working
@@ -15,7 +15,7 @@ screens to that real data instead of the mocks.
 
 Touches only:
 - `lib/friendships.ts` (new)
-- `components/matchmaker/select.tsx`
+- `app/matchmaker/select.tsx`
 - `app/matchmaker/note.tsx`
 
 Explicitly **out of scope**, left on mock data:
