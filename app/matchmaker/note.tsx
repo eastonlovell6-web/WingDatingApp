@@ -14,7 +14,7 @@ import { sendIntroduction } from "../../lib/introductions";
 import { useAuthStore } from "../../store/auth";
 import { useIntrosStore } from "../../store/intros";
 import { coral, ink, surface } from "../../constants/colors";
-import { fonts, textStyles } from "../../constants/typography";
+import { textStyles } from "../../constants/typography";
 import { radii, spacing } from "../../constants/spacing";
 
 function XIcon() {
@@ -180,14 +180,10 @@ export default function MatchmakerNoteScreen() {
       >
         {sendError && (
           <Text
-            style={{
-              fontFamily: fonts.body,
-              fontSize: 14,
-              lineHeight: 20,
-              color: coral[500],
-              textAlign: "center",
-              marginBottom: spacing[2],
-            }}
+            style={[
+              textStyles.caption,
+              { color: coral[500], textAlign: "center", marginBottom: spacing[2] },
+            ]}
           >
             {sendError}
           </Text>

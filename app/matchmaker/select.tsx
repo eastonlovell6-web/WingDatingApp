@@ -64,7 +64,7 @@ export default function MatchmakerSelectScreen() {
   }, [preselect, friends]);
 
   const eligibleCount = friends.filter((f) => getFriendEligibility(f) === "eligible").length;
-  const showEncouragement = !isLoading && eligibleCount < 2;
+  const showEncouragement = !!userId && !isLoading && eligibleCount < 2;
 
   const filteredFriends = friends.filter((f) =>
     f.name.toLowerCase().includes(search.toLowerCase())
@@ -143,7 +143,7 @@ export default function MatchmakerSelectScreen() {
         <Text style={textStyles.eyebrow}>STEP 1 OF 2</Text>
       </View>
 
-      {isLoading ? (
+      {!userId || isLoading ? (
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
           <ActivityIndicator color={coral[500]} />
         </View>
