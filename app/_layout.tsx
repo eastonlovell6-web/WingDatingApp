@@ -2,7 +2,13 @@ import "../global.css";
 
 import { useEffect, useState } from "react";
 import { useAuthStore } from "../store/auth";
-import { Stack } from "expo-router";
+import { Stack, router } from "expo-router";
+import * as Notifications from "expo-notifications";
+import {
+  registerForPushNotificationsAsync,
+  routeForNotificationData,
+  type WingNotificationData,
+} from "../lib/notifications";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -10,7 +16,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { DevNav } from "../components/dev/DevNav";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
-import * as Notifications from "expo-notifications";
 import {
   BricolageGrotesque_600SemiBold,
   BricolageGrotesque_700Bold,
@@ -29,20 +34,9 @@ import {
 // rendering before the families load would flash system fonts (FOUT).
 SplashScreen.preventAutoHideAsync();
 
-// Without an explicit handler, notifications fired while the app is
-// foregrounded (always true for the Matchmaker send flow) don't show a
-// banner on current Expo SDKs.
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-  }),
-});
-
 export default function RootLayout() {
   const [queryClient] = useState(() => new QueryClient());
+  const user = useAuthStore((s) => s.user);
 
   // Custom fonts can't vary by `fontWeight` on native — each weight is its own
   // family. These keys are the family names referenced in constants/typography.ts
@@ -63,6 +57,30 @@ export default function RootLayout() {
       useAuthStore.getState().initialize();
     }
   }, [fontsLoaded, fontError]);
+
+  useEffect(() => {
+    if (user) {
+      registerForPushNotificationsAsync(user.id).catch((err) =>
+        console.warn("push registration failed", err)
+      );
+    }
+  }, [user]);
+
+  useEffect(() => {
+    Notifications.getLastNotificationResponseAsync().then((response) => {
+      if (!response) return;
+      const data = response.notification.request.content.data as WingNotificationData;
+      const path = routeForNotificationData(data);
+      if (path) router.push(path as never);
+    });
+
+    const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
+      const data = response.notification.request.content.data as WingNotificationData;
+      const path = routeForNotificationData(data);
+      if (path) router.push(path as never);
+    });
+    return () => subscription.remove();
+  }, []);
 
   if (!fontsLoaded && !fontError) {
     return null;

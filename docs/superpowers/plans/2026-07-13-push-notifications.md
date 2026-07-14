@@ -385,10 +385,17 @@ Deno.serve(async (req: Request) => {
     const matchmakerFirstName = (matchmaker?.name ?? "Someone").split(" ")[0];
     const { title, body } = formatIntroNotification(matchmakerFirstName);
 
-    await Promise.all([
-      sendPushToUser(admin, userAId, title, body, { type: "intro", introId: intro.id }),
-      sendPushToUser(admin, userBId, title, body, { type: "intro", introId: intro.id }),
-    ]);
+    // The introduction row is already committed at this point — push
+    // delivery is best-effort and must never turn a successful write into a
+    // failure response (a client retry on 500 would create a duplicate row).
+    try {
+      await Promise.all([
+        sendPushToUser(admin, userAId, title, body, { type: "intro", introId: intro.id }),
+        sendPushToUser(admin, userBId, title, body, { type: "intro", introId: intro.id }),
+      ]);
+    } catch (pushError) {
+      console.warn("send-introduction: push delivery failed", pushError);
+    }
 
     return new Response(JSON.stringify({ introId: intro.id }), { status: 200 });
   } catch (err) {
@@ -468,7 +475,15 @@ Deno.serve(async (req: Request) => {
     const requesterFirstName = (requester?.name ?? "Someone").split(" ")[0];
     const { title, body } = formatIntroRequestNotification(requesterFirstName);
 
-    await sendPushToUser(admin, mutualFriendId, title, body, { type: "intro_request" });
+    // The intro_requests row is already committed at this point — push
+    // delivery is best-effort and must never turn a successful write into a
+    // failure response (a client retry on 500 would create a duplicate
+    // request row).
+    try {
+      await sendPushToUser(admin, mutualFriendId, title, body, { type: "intro_request" });
+    } catch (pushError) {
+      console.warn("request-introduction: push delivery failed", pushError);
+    }
 
     return new Response(JSON.stringify({ requestId: request.id }), { status: 200 });
   } catch (err) {
@@ -546,12 +561,24 @@ Deno.serve(async (req: Request) => {
     const isUserA = callerId === intro.user_a_id;
 
     if (response === "pass") {
-      const { error: updateError } = await admin
+      // Guard the write with the status we just read (`.eq("status", ...)`)
+      // so a concurrent response from the other participant can't be
+      // silently clobbered — see the accept branch below for why this
+      // matters more there. If nothing matched, the row moved between our
+      // read and write; fail closed and let the caller retry against the
+      // now-current state.
+      const { data: updated, error: updateError } = await admin
         .from("introductions")
         .update({ status: "passed" })
-        .eq("id", introId);
+        .eq("id", introId)
+        .eq("status", intro.status)
+        .select("id")
+        .maybeSingle();
       if (updateError) {
         return new Response(JSON.stringify({ error: updateError.message }), { status: 500 });
+      }
+      if (!updated) {
+        return new Response(JSON.stringify({ error: "This introduction changed — try again" }), { status: 409 });
       }
       // Silent rejection: no notification to anyone, ever.
       return new Response(JSON.stringify({ status: "passed" }), { status: 200 });
@@ -568,17 +595,41 @@ Deno.serve(async (req: Request) => {
       return new Response(JSON.stringify({ error: "You've already responded to this introduction" }), { status: 409 });
     }
 
-    const { error: updateError } = await admin
+    // Same compare-and-swap guard as the pass branch. Without it, two
+    // participants accepting at the same instant can both read
+    // "both_pending", independently compute "pending_b" and "pending_a",
+    // and whichever write lands last silently overwrites the other —
+    // leaving the row on a pending status forever with neither accept
+    // recorded, so the matchmaker never gets notified even though both
+    // people genuinely accepted. Guarding the update on the status we read
+    // makes the loser's write a no-op (`updated` is null) instead of a
+    // silent overwrite; the loser gets a 409 and their client retries,
+    // which reads the now-current status and computes the correct
+    // transition.
+    const { data: updated, error: updateError } = await admin
       .from("introductions")
       .update({ status: newStatus })
-      .eq("id", introId);
+      .eq("id", introId)
+      .eq("status", intro.status)
+      .select("id")
+      .maybeSingle();
     if (updateError) {
       return new Response(JSON.stringify({ error: updateError.message }), { status: 500 });
+    }
+    if (!updated) {
+      return new Response(JSON.stringify({ error: "This introduction changed — try again" }), { status: 409 });
     }
 
     if (newStatus === "accepted") {
       const { title, body } = formatIntroAcceptedNotification();
-      await sendPushToUser(admin, intro.matchmaker_id, title, body, { type: "intro_accepted" });
+      // The status is already committed at this point — push delivery is
+      // best-effort and must never turn a successful status update into a
+      // failure response.
+      try {
+        await sendPushToUser(admin, intro.matchmaker_id, title, body, { type: "intro_accepted" });
+      } catch (pushError) {
+        console.warn("respond-to-introduction: push delivery failed", pushError);
+      }
     }
 
     return new Response(JSON.stringify({ status: newStatus }), { status: 200 });
@@ -675,7 +726,15 @@ Deno.serve(async (req: Request) => {
     // Sent unconditionally, every time — no check of the recipient's
     // foreground/app-open state. Gating delivery on presence would make the
     // notification double as a read receipt, which Wing never has.
-    await sendPushToUser(admin, recipientId, title, body, { type: "message", chatId });
+    //
+    // The message is already committed at this point — push delivery is
+    // best-effort and must never turn a successful send into a failure
+    // response (a client retry on 500 would create a duplicate message).
+    try {
+      await sendPushToUser(admin, recipientId, title, body, { type: "message", chatId });
+    } catch (pushError) {
+      console.warn("send-message: push delivery failed", pushError);
+    }
 
     return new Response(
       JSON.stringify({ messageId: message.id, createdAt: message.created_at }),
@@ -725,9 +784,14 @@ import Constants from "expo-constants";
 import { Platform } from "react-native";
 import { supabase } from "./supabase";
 
+// Without an explicit handler, notifications fired while the app is
+// foregrounded don't show a banner on current Expo SDKs. shouldPlaySound
+// must stay true — on Android, false suppresses the heads-up banner
+// entirely regardless of shouldShowBanner.
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
   }),
@@ -857,16 +921,34 @@ export async function requestIntroduction(targetId: string, mutualFriendId: stri
 
 export type IntroResponseResult = "pending_a" | "pending_b" | "accepted" | "passed";
 
+/**
+ * respond-to-introduction guards its status update with a compare-and-swap
+ * and returns 409 if the row changed between its read and write (e.g. the
+ * other participant responded at nearly the same instant). That 409 doesn't
+ * mean this response failed — it means the attempt needs to be resubmitted
+ * against the now-current status, which is why this retries once before
+ * giving up. Without the retry, a genuine simultaneous double-accept could
+ * silently fail to notify the matchmaker from the loser's side.
+ */
 export async function respondToIntroduction(
   introId: string,
   response: "accept" | "pass"
 ): Promise<IntroResponseResult> {
-  const { data, error } = await supabase.functions.invoke<{ status: IntroResponseResult }>(
-    "respond-to-introduction",
-    { body: { introId, response } }
-  );
-  if (error) throw error;
-  return data!.status;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const { data, error } = await supabase.functions.invoke<{ status: IntroResponseResult }>(
+      "respond-to-introduction",
+      { body: { introId, response } }
+    );
+    if (!error) {
+      return data!.status;
+    }
+    const isStatusConflict =
+      "context" in error && error.context instanceof Response && error.context.status === 409;
+    if (!isStatusConflict || attempt === 1) {
+      throw error;
+    }
+  }
+  throw new Error("respondToIntroduction: unreachable");
 }
 ```
 

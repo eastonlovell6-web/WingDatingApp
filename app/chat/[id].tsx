@@ -9,6 +9,7 @@ import { ChatInput } from "../../components/chat/ChatInput";
 import { MOCK_MESSAGES } from "../../components/chat/mockMessages";
 import type { Message } from "../../components/chat/mockMessages";
 import { MOCK_CHATS } from "../../components/chats/mockChats";
+import { sendMessage } from "../../lib/chat";
 import { ink, shadowTint, surface } from "../../constants/colors";
 import { fonts, fontSize } from "../../constants/typography";
 import { spacing } from "../../constants/spacing";
@@ -36,10 +37,9 @@ export default function ChatScreen() {
       createdAt: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, message]);
-    // TODO: persist to `messages` table. The Supabase Edge Function that
-    // fans this out should build its push body with
-    // lib/notifications.ts#formatMessageNotification — never a generic
-    // "you have a new message" string.
+    if (id) {
+      sendMessage(id, content).catch((err) => console.warn("failed to send message", err));
+    }
   }
 
   return (

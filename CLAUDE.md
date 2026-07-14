@@ -260,10 +260,13 @@ users            — id, phone, name, photos[], bio_prompts[], role ("wing-me" |
 friendships      — user_id, friend_id, can_introduce (bool, default false)
 introductions    — id, matchmaker_id, user_a_id, user_b_id, note, status
   status enum:   pending_a | pending_b | both_pending | accepted | passed
+intro_requests   — id, requester_id, target_id, mutual_friend_id, status
+  status enum:   pending | approved | declined
 chats            — id, intro_id
 messages         — id, chat_id, sender_id, content, created_at
                    NO read_at field — ever
 matchmaker_stats — user_id, intros_sent, intros_accepted (counts only)
+push_tokens      — user_id, expo_push_token, updated_at
 ```
 
 ---
