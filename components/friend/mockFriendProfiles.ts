@@ -6,17 +6,11 @@ export interface FriendProfile {
   meta: string;
   photos: string[];
   prompts: ProfilePrompt[];
-  // Mirrors friendships.can_introduce for this friend — gates the
-  // "Introduce [Name] to someone" action.
-  canIntroduce: boolean;
-  // Mirrors this friend's own visibility setting on being asked about via
-  // Request an Intro — gates "See who [Name] could introduce you to".
-  connectionsVisible: boolean;
-  // Whether this friend currently wants to be introduced to others at all
-  // (independent of canIntroduce/connectionsVisible, which are per-viewer
-  // permissions). false = solely a wingman right now — e.g. in a
-  // relationship — ANDed with canIntroduce to gate "Introduce to someone";
-  // never gates "See who ... could introduce you to".
+  // Whether this friend currently wants to be introduced to others at all.
+  // Gates "Introduce [Name] to someone" on the Friend Profile screen.
+  // false = solely a wingman right now — e.g. in a relationship — but they
+  // can still matchmake for others, so "See who ... could introduce you to"
+  // always shows regardless of this flag.
   lookingToGetSetUp: boolean;
 }
 
@@ -32,8 +26,6 @@ export const MOCK_FRIEND_PROFILES: Record<string, FriendProfile> = {
     prompts: [
       { question: "I will never turn down...", answer: "A pickup game of pickleball, any time of day." },
     ],
-    canIntroduce: true,
-    connectionsVisible: true,
     lookingToGetSetUp: true,
   },
   "2": {
@@ -47,8 +39,6 @@ export const MOCK_FRIEND_PROFILES: Record<string, FriendProfile> = {
         answer: "My little sister's audition tape for a cooking show.",
       },
     ],
-    canIntroduce: true,
-    connectionsVisible: true,
     lookingToGetSetUp: true,
   },
   "3": {
@@ -59,8 +49,6 @@ export const MOCK_FRIEND_PROFILES: Record<string, FriendProfile> = {
     prompts: [
       { question: "Ask me about the time I...", answer: "Talked my way onto a closed ski lift in a snowstorm." },
     ],
-    canIntroduce: true,
-    connectionsVisible: false,
     lookingToGetSetUp: true,
   },
   "4": {
@@ -71,8 +59,6 @@ export const MOCK_FRIEND_PROFILES: Record<string, FriendProfile> = {
     prompts: [
       { question: "I'm weirdly competitive about...", answer: "Trivia night. I keep a running scoreboard on my fridge." },
     ],
-    canIntroduce: true,
-    connectionsVisible: true,
     lookingToGetSetUp: false,
   },
   "5": {
@@ -83,8 +69,6 @@ export const MOCK_FRIEND_PROFILES: Record<string, FriendProfile> = {
     prompts: [
       { question: "I could talk for an hour about...", answer: "Why the 1997 Jazz should've won it all." },
     ],
-    canIntroduce: false,
-    connectionsVisible: true,
     lookingToGetSetUp: true,
   },
   "6": {
@@ -98,8 +82,6 @@ export const MOCK_FRIEND_PROFILES: Record<string, FriendProfile> = {
         answer: "Loud, loyal, chronically late.",
       },
     ],
-    canIntroduce: true,
-    connectionsVisible: true,
     lookingToGetSetUp: true,
   },
   "7": {
@@ -113,8 +95,6 @@ export const MOCK_FRIEND_PROFILES: Record<string, FriendProfile> = {
         answer: "I can solve a Rubik's cube behind my back.",
       },
     ],
-    canIntroduce: true,
-    connectionsVisible: false,
     lookingToGetSetUp: true,
   },
 };

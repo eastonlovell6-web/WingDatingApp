@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
@@ -83,7 +83,8 @@ export default function MatchmakerNoteScreen() {
   }
 
   return (
-    <View
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
       style={{
         flex: 1,
         backgroundColor: surface.cream,
@@ -93,42 +94,48 @@ export default function MatchmakerNoteScreen() {
         paddingTop: insets.top,
       }}
     >
-      <View style={{ alignItems: "center", paddingTop: spacing[2] }}>
-        <View style={{ width: 40, height: 5, borderRadius: radii.pill, backgroundColor: ink[300] }} />
-      </View>
-
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          paddingHorizontal: spacing[6],
-          paddingTop: spacing[4],
-        }}
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: spacing[6] }}
       >
-        <Pressable
-          onPress={() => router.canGoBack() && router.back()}
-          hitSlop={8}
-          accessibilityRole="button"
-          accessibilityLabel="Back"
+        <View style={{ alignItems: "center", paddingTop: spacing[2] }}>
+          <View style={{ width: 40, height: 5, borderRadius: radii.pill, backgroundColor: ink[300] }} />
+        </View>
+
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingHorizontal: spacing[6],
+            paddingTop: spacing[4],
+          }}
         >
-          <XIcon />
-        </Pressable>
-        <Text style={textStyles.eyebrow}>STEP 2 OF 2</Text>
-      </View>
+          <Pressable
+            onPress={() => router.canGoBack() && router.back()}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Back"
+          >
+            <XIcon />
+          </Pressable>
+          <Text style={textStyles.eyebrow}>STEP 2 OF 2</Text>
+        </View>
 
-      <View style={{ paddingHorizontal: spacing[6], paddingTop: spacing[6], gap: spacing[2] }}>
-        <Text style={textStyles.heading}>Write the intro</Text>
-        <Text style={textStyles.caption}>A short note goes a long way.</Text>
-      </View>
+        <View style={{ paddingHorizontal: spacing[6], paddingTop: spacing[6], gap: spacing[2] }}>
+          <Text style={textStyles.heading}>Write the intro</Text>
+          <Text style={textStyles.caption}>A short note goes a long way.</Text>
+        </View>
 
-      <View style={{ paddingHorizontal: spacing[6], paddingTop: spacing[6] }}>
-        <SelectedPairHeader friendA={friendA} friendB={friendB} />
-      </View>
+        <View style={{ paddingHorizontal: spacing[6], paddingTop: spacing[6] }}>
+          <SelectedPairHeader friendA={friendA} friendB={friendB} />
+        </View>
 
-      <View style={{ flex: 1, paddingHorizontal: spacing[6], paddingTop: spacing[6] }}>
-        <NoteComposerCard value={note} onChangeText={setNote} />
-      </View>
+        <View style={{ paddingHorizontal: spacing[6], paddingTop: spacing[6] }}>
+          <NoteComposerCard value={note} onChangeText={setNote} />
+        </View>
+      </ScrollView>
 
       <View
         style={{
@@ -143,6 +150,6 @@ export default function MatchmakerNoteScreen() {
       </View>
 
       <SendConfirmationOverlay visible={confirming} onDismiss={handleConfirmationDismiss} />
-    </View>
+    </KeyboardAvoidingView>
   );
 }

@@ -18,13 +18,13 @@ interface NoteComposerCardProps {
  */
 export function NoteComposerCard({ value, onChangeText }: NoteComposerCardProps) {
   return (
-    <View style={[elevation.sm, { flex: 1 }]}>
+    <View style={elevation.sm}>
       <LinearGradient
         colors={gradients.sunset}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={{
-          flex: 1,
+          minHeight: 220,
           borderRadius: radii.xl,
           padding: spacing[8],
           overflow: "hidden",
@@ -51,7 +51,7 @@ export function NoteComposerCard({ value, onChangeText }: NoteComposerCardProps)
           cursorColor="#FFFFFF"
           style={{
             marginTop: spacing[4],
-            flex: 1,
+            minHeight: 120,
             fontFamily: fonts.display,
             fontSize: fontSize["2xl"][0],
             lineHeight: fontSize["2xl"][1],
