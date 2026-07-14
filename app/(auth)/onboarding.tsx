@@ -11,6 +11,7 @@ import Animated, { FadeInUp } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
+import type { OnboardingIntent } from "./intent";
 import { coral, ink, surface } from "../../constants/colors";
 import { fonts, textStyles } from "../../constants/typography";
 import { Button } from "../../components/ui/Button";
@@ -73,6 +74,7 @@ export default function Onboarding() {
   const user = useAuthStore((s) => s.user);
   // Set on the "What brings you to Wing?" screen; shapes the photos headline.
   const { intent } = useLocalSearchParams<{ intent?: string }>();
+  const role: OnboardingIntent = intent === "wing-somebody" ? "wing-somebody" : "wing-me";
   const photosHeadline =
     intent === "wing-somebody"
       ? "Put a face to the matchmaker"
@@ -92,7 +94,7 @@ export default function Onboarding() {
     if (!trimmedFirst || !trimmedLast || !user?.id) return;
     setIsSavingName(true);
     try {
-      await upsertUserProfile(user.id, { name: `${trimmedFirst} ${trimmedLast}` });
+      await upsertUserProfile(user.id, { name: `${trimmedFirst} ${trimmedLast}`, role });
       setStep(1);
     } catch (err) {
       console.error("Failed to save name:", err);

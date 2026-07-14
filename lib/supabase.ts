@@ -36,7 +36,7 @@ export async function uploadProfilePhoto(userId: string, localUri: string): Prom
 
 export async function upsertUserProfile(
   userId: string,
-  fields: { name?: string; photos?: string[]; bio_prompts?: object[] }
+  fields: { name?: string; photos?: string[]; bio_prompts?: object[]; role?: string }
 ) {
   const { error } = await supabase
     .from("users")
@@ -53,12 +53,13 @@ export interface UserProfileRow {
   name: string | null;
   photos: string[] | null;
   bio_prompts: BioPrompt[] | null;
+  role: string | null;
 }
 
 export async function getUserProfile(userId: string): Promise<UserProfileRow | null> {
   const { data, error } = await supabase
     .from("users")
-    .select("name, photos, bio_prompts")
+    .select("name, photos, bio_prompts, role")
     .eq("id", userId)
     .maybeSingle();
   if (error) throw error;
