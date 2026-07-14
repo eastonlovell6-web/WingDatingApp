@@ -4,9 +4,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { HomeHeader } from "../../components/home/HomeHeader";
 import { IntroFeed } from "../../components/home/IntroFeed";
 import { FriendsRow } from "../../components/home/FriendsRow";
+import { PromptCard } from "../../components/home/PromptCard";
 import { MOCK_INTROS } from "../../components/intro/mockIntros";
 import { MOCK_FRIENDS } from "../../components/home/friendsMock";
 import { TAB_BAR_CLEARANCE } from "../../components/home/TabBar";
+import { getIntroducibleFriends } from "../../components/matchmaker/mockMatchmakerFriends";
+import { getTodaysPrompt } from "../../lib/prompts";
 import { useAuthStore } from "../../store/auth";
 import { getUserProfile } from "../../lib/supabase";
 import { surface } from "../../constants/colors";
@@ -35,6 +38,9 @@ export default function HomeScreen() {
   // `name` in the users table holds the full "First Last" string.
   const name = profile?.name?.split(" ")[0];
   const introSubhead = formatIntroSubhead(MOCK_INTROS.map((intro) => intro.matchmakerName));
+  // Missing/null role (pre-existing users, or onboarding reached without an
+  // intent param) defaults to the existing wing-me behavior.
+  const isWingman = profile?.role === "wing-somebody";
 
   return (
     <View style={{ flex: 1, backgroundColor: surface.cream }}>
@@ -49,7 +55,11 @@ export default function HomeScreen() {
         }}
       >
         <HomeHeader name={name} loading={!!userId && isLoading} subhead={introSubhead} />
-        <IntroFeed intros={MOCK_INTROS} />
+        {isWingman ? (
+          <PromptCard prompt={getTodaysPrompt()} introducibleCount={getIntroducibleFriends().length} />
+        ) : (
+          <IntroFeed intros={MOCK_INTROS} />
+        )}
         <FriendsRow friends={MOCK_FRIENDS} />
       </ScrollView>
     </View>
