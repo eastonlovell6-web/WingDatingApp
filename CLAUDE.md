@@ -256,7 +256,7 @@ Fonts:      expo-font with Bricolage Grotesque, DM Sans, DM Mono
 
 ### Supabase Tables
 ```
-users            — id, phone, name, photos[], bio_prompts[]
+users            — id, phone, name, photos[], bio_prompts[], role ("wing-me" | "wing-somebody", from onboarding intent)
 friendships      — user_id, friend_id, can_introduce (bool, default false)
 introductions    — id, matchmaker_id, user_a_id, user_b_id, note, status
   status enum:   pending_a | pending_b | both_pending | accepted | passed
@@ -276,9 +276,9 @@ matchmaker_stats — user_id, intros_sent, intros_accepted (counts only)
     index.tsx          — phone number entry
     verify.tsx         — OTP verification
     intent.tsx         — "What brings you to Wing?" (wing-me | wing-somebody)
-    onboarding.tsx     — name, photos, friend visibility setup (headline varies by ?intent=)
+    onboarding.tsx     — name, photos, friend visibility setup (headline varies by ?intent=); saves `role` ("wing-me" | "wing-somebody", from ?intent=) to the users table alongside name in the same upsert
   /(tabs)
-    index.tsx          — home feed (incoming intros + friends row)
+    index.tsx          — home feed; wing-me/null-role users see the unchanged incoming-intros feed + friends row; wing-somebody (wingman-only) users see a daily PromptCard in place of the intro feed, friends row unchanged below it either way
     discover.tsx       — friends-of-friends browse
     intros.tsx         — matchmaker sent intros history
     chats.tsx          — Chats tab: list of active conversations (mutually-accepted intros)
@@ -288,13 +288,15 @@ matchmaker_stats — user_id, intros_sent, intros_accepted (counts only)
   /matchmaker
     select.tsx         — step 1: select two friends (modal sheet off the FAB; mock friend data + per-person eligibility, not per-pair — pair validation is step 2's job; accepts an optional `?preselect=<friendId>` param, seeded into `selectedIds` only when that friend is actually `getFriendEligibility(...) === "eligible"` — an ineligible/unknown preselect id silently falls back to no selection)
     note.tsx           — step 2: write note + send (not yet built)
+    prompt-friends.tsx — wingman-only daily-prompt flow: shows today's prompt (lib/prompts.ts) and a single-select list of introducible friends (getIntroducibleFriends, canIntroduce only — not full eligibility) reordered by keyword match against their bio prompts (lib/promptMatch.ts) — never filtered, just reordered; row tap routes to select.tsx with `?preselect=<friendId>`, reusing its existing eligibility fallback unchanged
   /friend/[friendId].tsx — read-only Friend Profile screen (name/meta/photos/prompts via FriendProfileHeader + FriendPhotoPromptPanel); "Introduce [Name] to someone" shown when `canIntroduce && lookingToGetSetUp` (routes to matchmaker select with them preselected), "See who [Name] could introduce you to" shown when `connectionsVisible` (stubbed alert — Connections List is a future plan); `lookingToGetSetUp: false` (solely a wingman, e.g. in a relationship) also renders a "Solely a wingman" badge via FriendProfileHeader's `showWingmanBadge` prop; reached today only via FriendsRow avatar taps
   /request/[friendId].tsx
 /components
   /ui                  — Button, Card, Avatar, Input, Badge, TruncatedText (word-safe line-clamped text; used by any list/card preview instead of raw numberOfLines+ellipsizeMode), TabGlyphs (IntrosGlyph/ChatsGlyph — shared with TabBar so screen-header icons match the tab bar exactly)
+  /home                — HomeHeader, IntroFeed, EmptyIntrosState, FriendsRow, TabBar, friendsMock (wing-me/null-role Home screen use), PromptCard (Sunset-gradient card styled like IntroNoteCard; normal state opens /matchmaker/prompt-friends, locked state when introducibleCount < 2 opens the Friend visibility settings coming-soon alert instead — wing-somebody Home screen use)
   /friend               — FriendProfileHeader (`showWingmanBadge` prop renders a plum "Solely a wingman" Badge under the meta line), FriendPhotoPromptPanel (read-only siblings of components/profile's editable versions — no edit/upload affordances, so not reused), mockFriendProfiles (`FriendProfile`, `MOCK_FRIEND_PROFILES` keyed "1"–"7", same ids as friendsMock/mockMatchmakerFriends; `canIntroduce`/`connectionsVisible` flags gate the Friend Profile screen's two actions; `lookingToGetSetUp` — false only for Maya Chen ("4") today — is ANDed with `canIntroduce` for the Introduce action and independent of `connectionsVisible` — Friend Profile screen use)
   /intro               — IntroCard, IntroNote, MatchmakerChip
-  /matchmaker          — FriendPickerChip (3 states: eligible/selected/ineligible; owns the tap-at-cap shake + Warning haptic), FriendPickerGrid (4-col, measures own width via onLayout), MatchmakerEncouragementState (<2-eligible-friends fallback), mockMatchmakerFriends (`MatchmakerFriend`, `getFriendEligibility` — checks `lookingToGetSetUp` before `canIntroduce`/`activePendingCount`, adding a `"not_looking"` eligibility ("Not looking to be set up") for solely-wingman friends, `getIneligibleCaption` — Step 1 friend-picker screen use)
+  /matchmaker          — FriendPickerChip (3 states: eligible/selected/ineligible; owns the tap-at-cap shake + Warning haptic), FriendPickerGrid (4-col, measures own width via onLayout), MatchmakerEncouragementState (<2-eligible-friends fallback), mockMatchmakerFriends (`MatchmakerFriend`, `getFriendEligibility` — checks `lookingToGetSetUp` before `canIntroduce`/`activePendingCount`, adding a `"not_looking"` eligibility ("Not looking to be set up") for solely-wingman friends, `getIneligibleCaption`, `getIntroducibleFriends` — filters to `canIntroduce: true` only, for the daily-prompt friend list — Step 1 friend-picker screen use)
   /intros              — SentIntroStats (matched stat coral, sent-count stat plum-600), SentIntroRow (pending rows expand in place to show the sent note + Nudge/Withdraw; matched rows never expand — matchmaker firewall), SentIntroList, EmptySentIntrosState, mockSentIntros, MatchmakerLeaderboardCard (plum-gradient summary card + full-leaderboard modal, ranked by intros_accepted not intros_sent), mockLeaderboard (Intros tab: sent-history, not received intros)
   /chats               — ChatList (owns shared open-row ref + removal animation), ChatRow (presentational, takes `onPress`), SwipeableChatRow (Swipeable wrapper: navigation, haptics, single-open coordination, Mute/Archive/Delete actions), ChatRowActionIcons (Mute/Archive/Delete line icons), EmptyChatsState, mockChats (`unreadCount: number`) (Chats tab: list of active conversations)
   /chat                — MessageBubble, ChatInput, mockMessages (chat thread screen use)
@@ -302,7 +304,9 @@ matchmaker_stats — user_id, intros_sent, intros_accepted (counts only)
   /auth                — PlaneTrailSuccess (OTP-verified success animation)
   /dev                 — DevNav (dev-only screen jumper, __DEV__ gated, mounted in app/_layout.tsx)
 /lib
-  supabase.ts
+  supabase.ts          — `UserProfileRow.role` ("wing-me" | "wing-somebody" | null) persisted from onboarding, read by the Home screen's role branch
+  prompts.ts           — `Prompt`, hand-written `PROMPTS` bank (20-30 entries, never AI-generated), `getTodaysPrompt` (day-of-year % bank size — one global prompt/day, no per-user rotation)
+  promptMatch.ts       — `sortFriendsByPromptMatch` — whole-word keyword match against friends' bio prompts; reorders only, never filters
   notifications.ts    — formatMessageNotification (push copy convention; not yet wired to an Edge Function)
   format.ts            — formatRelativeTime (shared by Chats/Intros list rows)
   haptics.ts
