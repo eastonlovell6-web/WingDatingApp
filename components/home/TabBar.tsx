@@ -115,37 +115,24 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           elevation.lg,
         ]}
       >
-        {state.routes.map((route, i) => {
-          const isFocused = state.index === i;
-          const label = TAB_LABELS[route.name] ?? route.name;
-          const color = isFocused ? coral[500] : ink[300];
+        {state.routes
+          .filter((route) => route.name in TAB_LABELS)
+          .map((route) => {
+            const isFocused = state.routes[state.index].key === route.key;
+            const label = TAB_LABELS[route.name];
+            const color = isFocused ? coral[500] : ink[300];
 
-          // Leave a gap in the middle for the FAB to straddle.
-          if (i === 2) {
             return (
-              <View key={`${route.key}-spacer`} style={{ width: 56, flexDirection: "row" }}>
-                <TabButton
-                  route={route}
-                  isFocused={isFocused}
-                  label={label}
-                  color={color}
-                  navigation={navigation}
-                />
-              </View>
+              <TabButton
+                key={route.key}
+                route={route}
+                isFocused={isFocused}
+                label={label}
+                color={color}
+                navigation={navigation}
+              />
             );
-          }
-
-          return (
-            <TabButton
-              key={route.key}
-              route={route}
-              isFocused={isFocused}
-              label={label}
-              color={color}
-              navigation={navigation}
-            />
-          );
-        })}
+          })}
       </View>
 
       <Pressable
