@@ -13,6 +13,7 @@ import { Button } from "../../components/ui/Button";
 import { MOCK_INTROS } from "../../components/intro/mockIntros";
 import { MOCK_PHOTOS, MOCK_PROFILE_USER } from "../../components/profile/mockProfile";
 import { useAuthStore } from "../../store/auth";
+import { respondToIntroduction } from "../../lib/introductions";
 import { getUserProfile } from "../../lib/supabase";
 import { ink, surface } from "../../constants/colors";
 import { fonts } from "../../constants/typography";
@@ -83,7 +84,9 @@ export default function IntroDetailScreen() {
   // matchmaker or the other person that a pass happened.
   function handleSkip() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    console.log(`[intro:${introId}] skipped`);
+    if (introId) {
+      respondToIntroduction(introId, "pass").catch((err) => console.warn("failed to record pass", err));
+    }
     if (router.canGoBack()) router.back();
   }
 
@@ -99,7 +102,9 @@ export default function IntroDetailScreen() {
   function handleAccept() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     acceptScale.value = withSequence(withSpring(1.06, spring), withSpring(1, spring));
-    console.log(`[intro:${introId}] accepted`);
+    if (introId) {
+      respondToIntroduction(introId, "accept").catch((err) => console.warn("failed to record accept", err));
+    }
     setTimeout(() => {
       if (router.canGoBack()) router.back();
     }, 180);
