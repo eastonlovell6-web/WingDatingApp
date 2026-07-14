@@ -41,7 +41,7 @@ import {
   MOCK_RANK_PROGRESS,
 } from "../../components/profile/mockProfile";
 import type { PrivacySettings, ProfilePrompt } from "../../components/profile/mockProfile";
-import { useIntrosStore } from "../../store/intros";
+import { getSentIntroductions } from "../../lib/introductions";
 
 const SEGMENTS = ["Profile", "Matchmaker", "Privacy"];
 
@@ -177,7 +177,11 @@ export default function ProfileScreen() {
     setPromptEditor(null);
   }
 
-  const sentIntros = useIntrosStore((s) => s.sentIntros);
+  const { data: sentIntros = [] } = useQuery({
+    queryKey: ["sentIntroductions", userId],
+    queryFn: () => getSentIntroductions(userId!),
+    enabled: !!userId,
+  });
   const pendingIntro = sentIntros.find((intro) => intro.status === "pending");
 
   return (

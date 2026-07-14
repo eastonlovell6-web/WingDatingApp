@@ -50,6 +50,19 @@ export function formatIntroNotification(matchmakerFirstName: string) {
 }
 
 /**
+ * Push copy for the Intros tab's "Nudge" action. Mirrors
+ * supabase/functions/_shared/notificationCopy.ts's
+ * formatIntroNudgeNotification — hand-synced, same reason as
+ * formatMessageNotification above.
+ */
+export function formatIntroNudgeNotification(matchmakerFirstName: string) {
+  return {
+    title: matchmakerFirstName,
+    body: `${matchmakerFirstName} is still hoping you'll check out that intro`,
+  };
+}
+
+/**
  * Requests push permission, gets an Expo push token, and upserts it into
  * `push_tokens`. No-ops if no EAS project id is configured yet (app.json /
  * eas.json don't set one as of this writing) — getExpoPushTokenAsync

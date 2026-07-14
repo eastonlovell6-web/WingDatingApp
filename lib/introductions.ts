@@ -1,5 +1,6 @@
 // lib/introductions.ts
 import { supabase } from "./supabase";
+import type { SentIntro } from "../components/intros/mockSentIntros";
 
 export async function sendIntroduction(userAId: string, userBId: string, note: string): Promise<string> {
   const { data, error } = await supabase.functions.invoke<{ introId: string }>("send-introduction", {
@@ -47,4 +48,59 @@ export async function respondToIntroduction(
     }
   }
   throw new Error("respondToIntroduction: unreachable");
+}
+
+export async function withdrawIntroduction(introId: string): Promise<void> {
+  const { error } = await supabase.functions.invoke("withdraw-introduction", { body: { introId } });
+  if (error) throw error;
+}
+
+export async function nudgeIntroduction(introId: string): Promise<void> {
+  const { error } = await supabase.functions.invoke("nudge-introduction", { body: { introId } });
+  if (error) throw error;
+}
+
+/**
+ * Two-step fetch (introductions, then users by id) rather than a PostgREST
+ * embed, matching getMatchmakerFriends' convention in lib/friendships.ts —
+ * introductions has three FKs into users (matchmaker_id/user_a_id/
+ * user_b_id), so an embed would need explicit constraint-name hints anyway.
+ * Withdrawn intros are excluded — once withdrawn they simply disappear from
+ * the matchmaker's sent list, there's no "Withdrawn" UI state to show.
+ */
+export async function getSentIntroductions(matchmakerId: string): Promise<SentIntro[]> {
+  const { data: intros, error } = await supabase
+    .from("introductions")
+    .select("id, user_a_id, user_b_id, note, status, created_at")
+    .eq("matchmaker_id", matchmakerId)
+    .neq("status", "withdrawn")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+
+  const userIds = Array.from(new Set((intros ?? []).flatMap((i) => [i.user_a_id, i.user_b_id])));
+  const { data: users, error: usersError } =
+    userIds.length > 0
+      ? await supabase.from("users").select("id, name, photos").in("id", userIds)
+      : { data: [], error: null };
+  if (usersError) throw usersError;
+
+  const userById = new Map((users ?? []).map((u) => [u.id, u]));
+
+  return (intros ?? []).map((intro) => {
+    const userA = userById.get(intro.user_a_id);
+    const userB = userById.get(intro.user_b_id);
+    return {
+      id: intro.id,
+      personAName: userA?.name ?? "Someone",
+      personAAvatarUri: userA?.photos?.[0] ?? undefined,
+      personBName: userB?.name ?? "Someone",
+      personBAvatarUri: userB?.photos?.[0] ?? undefined,
+      sentAt: intro.created_at,
+      // Only ever 'pending' | 'matched' — see mockSentIntros.ts's SentIntro
+      // comment: the matchmaker firewall means a pass must never surface as
+      // its own state, so it stays 'pending' forever.
+      status: intro.status === "accepted" ? "matched" : "pending",
+      note: intro.note,
+    };
+  });
 }

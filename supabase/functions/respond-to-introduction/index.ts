@@ -29,7 +29,7 @@ Deno.serve(async (req: Request) => {
     if (callerId !== intro.user_a_id && callerId !== intro.user_b_id) {
       return new Response(JSON.stringify({ error: "Not a participant in this introduction" }), { status: 403 });
     }
-    if (intro.status === "accepted" || intro.status === "passed") {
+    if (intro.status === "accepted" || intro.status === "passed" || intro.status === "withdrawn") {
       return new Response(JSON.stringify({ error: "This introduction is already resolved" }), { status: 409 });
     }
 

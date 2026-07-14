@@ -4,7 +4,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import * as Haptics from "expo-haptics";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "../../components/ui/Button";
 import { SelectedPairHeader } from "../../components/matchmaker/SelectedPairHeader";
 import { NoteComposerCard } from "../../components/matchmaker/NoteComposerCard";
@@ -12,7 +12,6 @@ import { SendConfirmationOverlay } from "../../components/matchmaker/SendConfirm
 import { getMatchmakerFriends } from "../../lib/friendships";
 import { sendIntroduction } from "../../lib/introductions";
 import { useAuthStore } from "../../store/auth";
-import { useIntrosStore } from "../../store/intros";
 import { coral, ink, surface } from "../../constants/colors";
 import { textStyles } from "../../constants/typography";
 import { radii, spacing } from "../../constants/spacing";
@@ -62,6 +61,7 @@ export default function MatchmakerNoteScreen() {
   const [sendError, setSendError] = useState<string | null>(null);
 
   const userId = useAuthStore((s) => s.user?.id);
+  const queryClient = useQueryClient();
   const { data: friends = [] } = useQuery({
     queryKey: ["matchmakerFriends", userId],
     queryFn: () => getMatchmakerFriends(userId!),
@@ -96,11 +96,7 @@ export default function MatchmakerNoteScreen() {
     setSendError(null);
     try {
       await sendIntroduction(friendA.id, friendB.id, note.trim());
-      // Temporary bridge: the Intros tab (sent-history list) is still
-      // mock-backed, out of scope for this task. Keeping this optimistic
-      // append preserves "my just-sent intro shows up there" continuity
-      // until that tab gets its own real-data wiring.
-      useIntrosStore.getState().sendIntro(friendA, friendB, note.trim());
+      queryClient.invalidateQueries({ queryKey: ["sentIntroductions", userId] });
       setConfirming(true);
     } catch (err) {
       setSendError(await extractSendErrorMessage(err));

@@ -24,6 +24,13 @@ export function formatIntroAcceptedNotification() {
   };
 }
 
+export function formatIntroNudgeNotification(matchmakerFirstName: string) {
+  return {
+    title: matchmakerFirstName,
+    body: `${matchmakerFirstName} is still hoping you'll check out that intro`,
+  };
+}
+
 export function formatMessageNotification(senderFirstName: string) {
   return {
     title: senderFirstName,
