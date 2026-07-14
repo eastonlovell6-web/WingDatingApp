@@ -78,6 +78,10 @@ export default function RootLayout() {
               name="matchmaker/select"
               options={{ presentation: "modal", animation: "slide_from_bottom" }}
             />
+            <Stack.Screen
+              name="matchmaker/prompt-friends"
+              options={{ presentation: "modal", animation: "slide_from_bottom" }}
+            />
           </Stack>
           {__DEV__ && <DevNav />}
         </QueryClientProvider>

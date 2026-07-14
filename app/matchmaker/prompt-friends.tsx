@@ -86,7 +86,12 @@ export default function PromptFriendsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {friends.map((friend, index) => (
-          <Pressable key={friend.id} onPress={() => handleSelect(friend.id)}>
+          <Pressable
+            key={friend.id}
+            onPress={() => handleSelect(friend.id)}
+            accessibilityRole="button"
+            accessibilityLabel={friend.name}
+          >
             {({ pressed }) => (
               <View
                 style={{
