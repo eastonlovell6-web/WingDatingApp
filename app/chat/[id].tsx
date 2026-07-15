@@ -48,12 +48,24 @@ export default function ChatScreen() {
   useEffect(() => {
     if (!id) return;
     return subscribeToMessages(id, (message) => {
-      queryClient.setQueryData<Message[]>(["messages", id], (prev = []) =>
-        prev.some((m) => m.id === message.id) ? prev : [...prev, message]
-      );
+      queryClient.setQueryData<Message[]>(["messages", id], (prev = []) => {
+        if (prev.some((m) => m.id === message.id)) return prev;
+        // This could be the realtime echo of a message we just sent optimistically —
+        // if it beat the sendMessage() HTTP response back, reconcile it in place
+        // instead of appending a second bubble alongside the still-pending optimistic one.
+        if (message.senderId === userId) {
+          const pendingIndex = prev.findIndex((m) => m.id.startsWith("local-") && m.content === message.content);
+          if (pendingIndex !== -1) {
+            const next = [...prev];
+            next[pendingIndex] = message;
+            return next;
+          }
+        }
+        return [...prev, message];
+      });
       setLastViewed(id).catch((err) => console.warn("failed to mark chat viewed", err));
     });
-  }, [id, queryClient]);
+  }, [id, queryClient, userId]);
 
   function handleSend(content: string) {
     if (!id || !userId) return;
@@ -71,7 +83,9 @@ export default function ChatScreen() {
       .then(({ messageId, createdAt }) => {
         queryClient.setQueryData<Message[]>(["messages", id], (prev = []) => {
           const withoutTemp = prev.filter((m) => m.id !== tempId);
-          if (withoutTemp.some((m) => m.id === messageId)) return withoutTemp;
+          // If the realtime handler already reconciled the optimistic entry with the
+          // real message (it can arrive before this promise resolves), don't re-add it.
+          if (prev.some((m) => m.id === messageId)) return withoutTemp;
           return [...withoutTemp, { ...optimisticMessage, id: messageId, createdAt }];
         });
       })
