@@ -25,20 +25,25 @@ import { PrivacyPanel } from "../../components/profile/PrivacyPanel";
 import { TAB_BAR_CLEARANCE } from "../../components/home/TabBar";
 import { useAuthStore } from "../../store/auth";
 import { getUserProfile, uploadProfilePhoto, upsertUserProfile } from "../../lib/supabase";
-import { getMatchmakerStats } from "../../lib/introductions";
+import { getMatchmakerLeaderboardStats, getMatchmakerStats } from "../../lib/introductions";
 import { getIntroducersCount } from "../../lib/friendships";
+import { rankedLeaderboard } from "../../components/intros/mockLeaderboard";
+import {
+  computeBadges,
+  computeMatchmakerScore,
+  computeNextMilestoneCopy,
+  computePercentileLabel,
+  computeRankLevel,
+  computeStreak,
+} from "../../lib/matchmakerScore";
 import { surface } from "../../constants/colors";
 import { spacing } from "../../constants/spacing";
 import {
-  MOCK_BADGES,
   MOCK_BLOCKED_COUNT,
-  MOCK_MATCHMAKER_STATS,
-  MOCK_NEXT_MILESTONE_COPY,
   MOCK_PHOTOS,
   MOCK_PRIVACY_SETTINGS,
   MOCK_PROFILE_USER,
   MOCK_PROMPTS,
-  MOCK_RANK_PROGRESS,
 } from "../../components/profile/mockProfile";
 import type { PrivacySettings, ProfilePrompt } from "../../components/profile/mockProfile";
 import { getSentIntroductions } from "../../lib/introductions";
@@ -195,6 +200,28 @@ export default function ProfileScreen() {
     enabled: !!userId,
   });
 
+  const { data: leaderboardStats = [] } = useQuery({
+    queryKey: ["matchmakerLeaderboard", userId],
+    queryFn: getMatchmakerLeaderboardStats,
+    enabled: !!userId,
+  });
+  const ranked = rankedLeaderboard(
+    leaderboardStats.map((entry) => ({ ...entry, isCurrentUser: entry.id === userId }))
+  );
+  const rank = ranked.findIndex((entry) => entry.isCurrentUser) + 1;
+  const groupSize = ranked.length;
+
+  const introsSent = matchmakerStats?.introsSent ?? 0;
+  const introsAccepted = matchmakerStats?.introsAccepted ?? 0;
+  const score = computeMatchmakerScore(introsSent, introsAccepted);
+  const percentileLabel = computePercentileLabel(rank, groupSize);
+  const badges = computeBadges(introsSent, introsAccepted, rank, groupSize);
+  const nextMilestoneCopy = computeNextMilestoneCopy(introsAccepted);
+  const rankProgress = {
+    ...computeRankLevel(introsSent, introsAccepted),
+    ...computeStreak(sentIntros.map((intro) => intro.sentAt)),
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: surface.cream }}>
       <View
@@ -239,14 +266,14 @@ export default function ProfileScreen() {
 
           {activeIndex === 1 && (
             <MatchmakerPanel
-              score={MOCK_MATCHMAKER_STATS.score}
-              percentileLabel={MOCK_MATCHMAKER_STATS.percentileLabel}
-              introsSent={matchmakerStats?.introsSent ?? 0}
-              introsAccepted={matchmakerStats?.introsAccepted ?? 0}
-              hasSentIntros={(matchmakerStats?.introsSent ?? 0) > 0}
-              badges={MOCK_BADGES}
-              rankProgress={MOCK_RANK_PROGRESS}
-              nextMilestoneCopy={MOCK_NEXT_MILESTONE_COPY}
+              score={score}
+              percentileLabel={percentileLabel}
+              introsSent={introsSent}
+              introsAccepted={introsAccepted}
+              hasSentIntros={introsSent > 0}
+              badges={badges}
+              rankProgress={rankProgress}
+              nextMilestoneCopy={nextMilestoneCopy}
               pendingIntro={pendingIntro}
               onMakeIntroPress={() => comingSoon("Matchmaker")}
             />
