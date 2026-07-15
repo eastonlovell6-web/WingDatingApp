@@ -69,3 +69,21 @@ export async function getMatchmakerFriends(userId: string): Promise<MatchmakerFr
     lookingToGetSetUp: user.role !== "wing-somebody",
   }));
 }
+
+/**
+ * Count of friends who can introduce this user. A friendships row's
+ * user_id is the friend who granted permission, friend_id is the person
+ * allowed to introduce them (see getMatchmakerFriends above) — so rows
+ * where user_id = userId are the ones this user granted, and counting
+ * those with can_introduce = true gives the number of friends allowed to
+ * introduce this user.
+ */
+export async function getIntroducersCount(userId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from("friendships")
+    .select("friend_id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("can_introduce", true);
+  if (error) throw error;
+  return count ?? 0;
+}
