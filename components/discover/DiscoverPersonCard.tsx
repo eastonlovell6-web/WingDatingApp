@@ -12,12 +12,11 @@ import { ink } from "../../constants/colors";
 import { fonts, fontSize } from "../../constants/typography";
 import { radii, spacing } from "../../constants/spacing";
 import { elevation } from "../../constants/elevation";
-import type { DiscoverPerson } from "./mockDiscoverPeople";
+import type { DiscoverPerson } from "../../lib/discover";
 import type { WingFriend } from "../home/friendsMock";
 
 interface DiscoverPersonCardProps {
   person: DiscoverPerson;
-  mutuals: WingFriend[];
   index: number;
 }
 
@@ -29,7 +28,7 @@ function mutualCaption(mutuals: WingFriend[]): string {
   return mutuals.length === 1 ? `via ${firstName}` : `via ${firstName} +${mutuals.length - 1}`;
 }
 
-export function DiscoverPersonCard({ person, mutuals, index }: DiscoverPersonCardProps) {
+export function DiscoverPersonCard({ person, index }: DiscoverPersonCardProps) {
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -37,8 +36,7 @@ export function DiscoverPersonCard({ person, mutuals, index }: DiscoverPersonCar
 
   function handlePress() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const mutualIds = mutuals.map((m) => m.id).join(",");
-    router.push(`/request/${person.id}?mutualIds=${mutualIds}` as never);
+    router.push(`/request/${person.id}` as never);
   }
 
   return (
@@ -49,7 +47,7 @@ export function DiscoverPersonCard({ person, mutuals, index }: DiscoverPersonCar
         onPress={handlePress}
         accessible
         accessibilityRole="button"
-        accessibilityLabel={`${person.name}, ${mutualCaption(mutuals)}`}
+        accessibilityLabel={`${person.name}, ${mutualCaption(person.mutuals)}`}
       >
         <Animated.View style={[elevation.sm, animatedStyle, { gap: spacing[2] }]}>
           <View style={{ borderRadius: radii.xl, overflow: "hidden", aspectRatio: 4 / 5 }}>
@@ -68,7 +66,7 @@ export function DiscoverPersonCard({ person, mutuals, index }: DiscoverPersonCar
             >
               {person.meta}
             </Text>
-            <Badge label={mutualCaption(mutuals)} tone="plum" />
+            <Badge label={mutualCaption(person.mutuals)} tone="plum" />
           </View>
         </Animated.View>
       </Pressable>

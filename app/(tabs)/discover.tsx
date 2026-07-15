@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { LayoutChangeEvent, Pressable, ScrollView, Text, View } from "react-native";
 import { router } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import { DiscoverPersonCard } from "../../components/discover/DiscoverPersonCard";
-import { getDiscoverPeople } from "../../components/discover/mockDiscoverPeople";
-import { MOCK_FRIENDS } from "../../components/home/friendsMock";
+import { getDiscoverPeople } from "../../lib/discover";
+import { useAuthStore } from "../../store/auth";
 import { ink, surface } from "../../constants/colors";
 import { fonts, fontSize } from "../../constants/typography";
 import { spacing } from "../../constants/spacing";
@@ -23,7 +24,12 @@ function BackIcon() {
 export default function DiscoverScreen() {
   const insets = useSafeAreaInsets();
   const [containerWidth, setContainerWidth] = useState(0);
-  const people = getDiscoverPeople();
+  const userId = useAuthStore((s) => s.user?.id);
+  const { data: people, isLoading } = useQuery({
+    queryKey: ["discoverPeople", userId],
+    queryFn: getDiscoverPeople,
+    enabled: !!userId,
+  });
   const gap = spacing[4];
   const cardWidth = containerWidth > 0 ? (containerWidth - gap * (COLUMNS - 1)) / COLUMNS : 0;
 
@@ -70,20 +76,21 @@ export default function DiscoverScreen() {
           Discover
         </Text>
 
-        {people.length === 0 ? (
+        {isLoading ? (
+          <Text style={{ fontFamily: fonts.body, fontSize: fontSize.base[0], color: ink[500] }}>
+            Loading...
+          </Text>
+        ) : !people || people.length === 0 ? (
           <Text style={{ fontFamily: fonts.body, fontSize: fontSize.base[0], color: ink[500] }}>
             No one to discover right now — check back once your friends make more connections.
           </Text>
         ) : (
           <View onLayout={handleLayout} style={{ flexDirection: "row", flexWrap: "wrap", gap }}>
-            {people.map((person, index) => {
-              const mutuals = MOCK_FRIENDS.filter((friend) => person.mutualFriendIds.includes(friend.id));
-              return (
-                <View key={person.id} style={{ width: cardWidth || undefined }}>
-                  <DiscoverPersonCard person={person} mutuals={mutuals} index={index} />
-                </View>
-              );
-            })}
+            {people.map((person, index) => (
+              <View key={person.id} style={{ width: cardWidth || undefined }}>
+                <DiscoverPersonCard person={person} index={index} />
+              </View>
+            ))}
           </View>
         )}
       </ScrollView>

@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import { Image, Pressable, ScrollView, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
 import * as Haptics from "expo-haptics";
 import { Avatar } from "../../components/ui/Avatar";
 import { Button } from "../../components/ui/Button";
 import { SendConfirmationOverlay } from "../../components/matchmaker/SendConfirmationOverlay";
-import { getDiscoverPeople } from "../../components/discover/mockDiscoverPeople";
-import { MOCK_FRIENDS, type WingFriend } from "../../components/home/friendsMock";
+import { getDiscoverPersonDetail } from "../../lib/discover";
+import type { WingFriend } from "../../components/home/friendsMock";
 import { extractFunctionErrorMessage, requestIntroduction } from "../../lib/introductions";
 import { coral, ink, surface } from "../../constants/colors";
 import { fonts, fontSize, textStyles } from "../../constants/typography";
@@ -71,26 +72,30 @@ function MutualOption({
 }
 
 export default function RequestIntroScreen() {
-  const { friendId, mutualIds } = useLocalSearchParams<{ friendId: string; mutualIds?: string }>();
+  const { friendId } = useLocalSearchParams<{ friendId: string }>();
   const insets = useSafeAreaInsets();
   const [selectedMutualId, setSelectedMutualId] = useState<string | undefined>(undefined);
   const [confirming, setConfirming] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
 
-  const person = getDiscoverPeople().find((p) => p.id === friendId);
-  const mutualFriendIds = mutualIds ? mutualIds.split(",").filter(Boolean) : [];
-  const mutuals = MOCK_FRIENDS.filter((friend) => mutualFriendIds.includes(friend.id));
+  const { data: person, isLoading } = useQuery({
+    queryKey: ["discoverPerson", friendId],
+    queryFn: () => getDiscoverPersonDetail(friendId!),
+    enabled: !!friendId,
+  });
+  const mutuals: WingFriend[] = person?.mutuals ?? [];
 
-  // Malformed/direct deep link — not reachable via the app's own navigation
-  // (discover.tsx only ever passes a real person id + its own mutuals), so
-  // this just backs out rather than showing a dedicated error state. Same
-  // convention as matchmaker/note.tsx.
+  // Malformed/direct deep link, or a target that's fallen out of the 2-hop
+  // network since navigation (e.g. a friendship was removed) — not
+  // otherwise reachable via the app's own navigation, so this just backs
+  // out rather than showing a dedicated error state. Same convention as
+  // matchmaker/note.tsx.
   useEffect(() => {
-    if (!person || mutuals.length === 0) {
+    if (!isLoading && (!person || mutuals.length === 0)) {
       router.canGoBack() && router.back();
     }
-  }, [person, mutuals.length]);
+  }, [isLoading, person, mutuals.length]);
 
   useEffect(() => {
     if (mutuals.length > 0 && !selectedMutualId) {
