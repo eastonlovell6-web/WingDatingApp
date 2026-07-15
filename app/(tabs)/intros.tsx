@@ -6,9 +6,14 @@ import { SentIntroStats } from "../../components/intros/SentIntroStats";
 import { SentIntroList } from "../../components/intros/SentIntroList";
 import { MatchmakerLeaderboardCard } from "../../components/intros/MatchmakerLeaderboardCard";
 import type { SentIntro } from "../../components/intros/mockSentIntros";
-import { getSentIntroductions, nudgeIntroduction, withdrawIntroduction } from "../../lib/introductions";
+import {
+  getMatchmakerLeaderboardStats,
+  getSentIntroductions,
+  nudgeIntroduction,
+  withdrawIntroduction,
+} from "../../lib/introductions";
 import { useAuthStore } from "../../store/auth";
-import { MOCK_LEADERBOARD } from "../../components/intros/mockLeaderboard";
+import type { LeaderboardEntry } from "../../components/intros/mockLeaderboard";
 import { TAB_BAR_CLEARANCE } from "../../components/home/TabBar";
 import { IntrosGlyph } from "../../components/ui/TabGlyphs";
 import { coral, ink, surface } from "../../constants/colors";
@@ -27,6 +32,20 @@ export default function IntrosScreen() {
     enabled: !!userId,
   });
   const hasSentIntros = sentIntros.length > 0;
+
+  const { data: leaderboardStats = [] } = useQuery({
+    queryKey: ["matchmakerLeaderboard", userId],
+    queryFn: getMatchmakerLeaderboardStats,
+    enabled: !!userId && hasSentIntros,
+  });
+  const leaderboardEntries: LeaderboardEntry[] = leaderboardStats.map((entry) => ({
+    id: entry.id,
+    name: entry.name,
+    avatarUri: entry.avatarUri,
+    introsAccepted: entry.introsAccepted,
+    introsSent: entry.introsSent,
+    isCurrentUser: entry.id === userId,
+  }));
 
   function handleMakeIntroPress() {
     router.push("/matchmaker/select");
@@ -82,7 +101,7 @@ export default function IntrosScreen() {
           onWithdraw={handleWithdraw}
         />
 
-        {hasSentIntros && <MatchmakerLeaderboardCard entries={MOCK_LEADERBOARD} />}
+        {hasSentIntros && <MatchmakerLeaderboardCard entries={leaderboardEntries} />}
 
         {hasSentIntros && (
           <Text
