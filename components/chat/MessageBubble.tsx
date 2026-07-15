@@ -6,11 +6,10 @@ import type { Message } from "./mockMessages";
 
 interface MessageBubbleProps {
   message: Message;
+  isMine: boolean;
 }
 
-export function MessageBubble({ message }: MessageBubbleProps) {
-  const isMine = message.senderId === "me";
-
+export function MessageBubble({ message, isMine }: MessageBubbleProps) {
   return (
     <View style={{ alignItems: isMine ? "flex-end" : "flex-start", marginBottom: spacing[2] }}>
       <View
