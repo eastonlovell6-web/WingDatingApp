@@ -96,6 +96,19 @@ Deno.serve(async (req: Request) => {
     }
 
     if (newStatus === "accepted") {
+      // Chat creation must never turn a successful accept into a failure
+      // response — respondToIntroduction's client retry only handles a
+      // 409 conflict, and a second call after this point reads
+      // status === "accepted" and 409s with "already resolved," which
+      // isn't a conflict the retry logic knows how to resolve. A rare
+      // insert failure here becomes a to-be-healed-manually gap, not a
+      // stuck user. chats.intro_id is unique (005_chats_realtime.sql), so
+      // a retried insert can never produce a duplicate chat.
+      const { error: chatError } = await admin.from("chats").insert({ intro_id: introId });
+      if (chatError) {
+        console.warn("respond-to-introduction: chat creation failed", chatError);
+      }
+
       const { title, body } = formatIntroAcceptedNotification();
       // The status is already committed at this point — push delivery is
       // best-effort and must never turn a successful status update into a

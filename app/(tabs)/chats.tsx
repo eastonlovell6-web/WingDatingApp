@@ -1,21 +1,40 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChatList } from "../../components/chats/ChatList";
-import { MOCK_CHATS } from "../../components/chats/mockChats";
 import { TAB_BAR_CLEARANCE } from "../../components/home/TabBar";
 import { ChatsGlyph } from "../../components/ui/TabGlyphs";
+import { useAuthStore } from "../../store/auth";
+import { getChats, subscribeToInbox } from "../../lib/chat";
 import { ink, plum, surface } from "../../constants/colors";
 import { fonts, fontSize } from "../../constants/typography";
 import { spacing } from "../../constants/spacing";
 
 export default function ChatsScreen() {
   const insets = useSafeAreaInsets();
-  const [chats, setChats] = useState(MOCK_CHATS);
+  const userId = useAuthStore((s) => s.user?.id);
+  const queryClient = useQueryClient();
+  const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
+
+  const { data: allChats = [] } = useQuery({
+    queryKey: ["chats", userId],
+    queryFn: () => getChats(userId!),
+    enabled: !!userId,
+  });
+
+  useEffect(() => {
+    if (!userId) return;
+    return subscribeToInbox(() => {
+      queryClient.invalidateQueries({ queryKey: ["chats", userId] });
+    });
+  }, [userId, queryClient]);
+
+  const chats = allChats.filter((chat) => !removedIds.has(chat.id));
   const hasChats = chats.length > 0;
 
   function handleRemoveChat(id: string) {
-    setChats((prev) => prev.filter((chat) => chat.id !== id));
+    setRemovedIds((prev) => new Set(prev).add(id));
   }
 
   return (
