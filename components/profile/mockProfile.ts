@@ -63,14 +63,6 @@ export const MOCK_PROMPTS: ProfilePrompt[] = [
   },
 ];
 
-// TODO: replace with a real progression formula — see docs/superpowers/specs
-// /2026-07-15-profile-matchmaker-counts-design.md. introsSent/introsAccepted
-// are real now (lib/introductions.ts's getMatchmakerStats).
-export const MOCK_MATCHMAKER_STATS = {
-  score: 82,
-  percentileLabel: "You're in the top 15% of matchmakers this month.",
-};
-
 export interface MatchmakerRankProgress {
   tier: "Wingperson" | "Setup Artist" | "Cupid" | "Matchmaker Legend";
   level: number;
@@ -80,31 +72,6 @@ export interface MatchmakerRankProgress {
   streakAtRisk: boolean;
   streakResetsInDays: number;
 }
-
-// TODO: replace with a real progression table once server-side rank/XP/streak
-// tracking exists. tier/level/xp/streak are independent mock fields for now —
-// not derived from `score` by any formula.
-export const MOCK_RANK_PROGRESS: MatchmakerRankProgress = {
-  tier: "Cupid",
-  level: 4,
-  xpCurrent: 340,
-  xpForNextLevel: 500,
-  streakWeeks: 3,
-  streakAtRisk: true,
-  streakResetsInDays: 1,
-};
-
-// TODO: replace once real progression math exists server-side. Precomputed
-// nudge copy, not derived from a formula — same convention as score/
-// percentileLabel above.
-export const MOCK_NEXT_MILESTONE_COPY = "2 more intros to reach 100";
-
-// TODO: derive from thresholds against `matchmaker_stats` once that table is real.
-export const MOCK_BADGES: MatchmakerBadge[] = [
-  { id: "1", label: "Top Matchmaker", tone: "butter", variant: "outline" },
-  { id: "2", label: "5 Intros Sent", tone: "plum", variant: "outline" },
-  { id: "3", label: "3 Matches Made", tone: "mint", variant: "outline" },
-];
 
 // TODO: replace with a real blocked/hidden users table once it exists.
 export const MOCK_BLOCKED_COUNT = 0;
