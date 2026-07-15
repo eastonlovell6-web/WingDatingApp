@@ -70,6 +70,39 @@ export async function getMatchmakerFriends(userId: string): Promise<MatchmakerFr
   }));
 }
 
+export interface FriendProfileData {
+  id: string;
+  name: string;
+  photos: string[];
+  prompts: { question: string; answer: string }[];
+  lookingToGetSetUp: boolean;
+}
+
+/**
+ * Single friend's profile for the read-only Friend Profile screen. Relies
+ * on the `users_select_self_or_friend` RLS policy (friendships.ts's own
+ * getMatchmakerFriends comment above) rather than checking the friendship
+ * graph itself — a non-friend id just comes back null, same trust pattern
+ * as getIntroductionDetail in lib/introductions.ts.
+ */
+export async function getFriendProfile(friendId: string): Promise<FriendProfileData | null> {
+  const { data, error } = await supabase
+    .from("users")
+    .select("id, name, photos, bio_prompts, role")
+    .eq("id", friendId)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+
+  return {
+    id: data.id,
+    name: data.name ?? "",
+    photos: data.photos ?? [],
+    prompts: (data.bio_prompts ?? []) as { question: string; answer: string }[],
+    lookingToGetSetUp: data.role !== "wing-somebody",
+  };
+}
+
 /**
  * Count of friends who can introduce this user. A friendships row's
  * user_id is the friend who granted permission, friend_id is the person

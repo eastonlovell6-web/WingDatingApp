@@ -1,10 +1,8 @@
-import { MOCK_FRIEND_PROFILES } from "../components/friend/mockFriendProfiles";
+import { MOCK_BIO_TEXT } from "../components/matchmaker/mockMatchmakerFriends";
 import type { MatchmakerFriend } from "../components/matchmaker/mockMatchmakerFriends";
 
 function friendBioText(friendId: string): string {
-  const profile = MOCK_FRIEND_PROFILES[friendId];
-  if (!profile) return "";
-  return profile.prompts.map((p) => `${p.question} ${p.answer}`).join(" ");
+  return MOCK_BIO_TEXT[friendId] ?? "";
 }
 
 function escapeRegExp(value: string): string {

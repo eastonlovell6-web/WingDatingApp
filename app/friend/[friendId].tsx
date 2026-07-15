@@ -1,14 +1,22 @@
 import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useQuery } from "@tanstack/react-query";
 import Svg, { Path } from "react-native-svg";
 import { Button } from "../../components/ui/Button";
 import { FriendProfileHeader } from "../../components/friend/FriendProfileHeader";
 import { FriendPhotoPromptPanel } from "../../components/friend/FriendPhotoPromptPanel";
-import { MOCK_FRIEND_PROFILES } from "../../components/friend/mockFriendProfiles";
 import { ink, surface } from "../../constants/colors";
 import { fonts, fontSize } from "../../constants/typography";
 import { spacing } from "../../constants/spacing";
+import { useAuthStore } from "../../store/auth";
+import { getUserProfile } from "../../lib/supabase";
+import { getFriendProfile } from "../../lib/friendships";
+
+// `users` has no age/location columns yet (same gap noted for matchAge/
+// matchTagline in app/intro/[id].tsx) — hardcoded since launch is single-
+// campus (see CLAUDE.md Launch Context) rather than faked per friend.
+const FRIEND_META = "BYU · Provo, UT";
 
 function BackIcon() {
   return (
@@ -28,7 +36,20 @@ function comingSoon(title: string) {
 export default function FriendProfileScreen() {
   const { friendId } = useLocalSearchParams<{ friendId: string }>();
   const insets = useSafeAreaInsets();
-  const friend = friendId ? MOCK_FRIEND_PROFILES[friendId] : undefined;
+  const { data: friend, isLoading: isFriendLoading } = useQuery({
+    queryKey: ["friendProfile", friendId],
+    queryFn: () => getFriendProfile(friendId!),
+    enabled: !!friendId,
+  });
+  const userId = useAuthStore((s) => s.user?.id);
+  const { data: viewerProfile } = useQuery({
+    queryKey: ["userProfile", userId],
+    queryFn: () => getUserProfile(userId!),
+    enabled: !!userId,
+  });
+  // Wingman-only viewers do the introducing and are never introduced
+  // themselves, so the reverse-connections action doesn't apply to them.
+  const isWingmanOnly = viewerProfile?.role === "wing-somebody";
 
   if (!friend) {
     return (
@@ -41,9 +62,11 @@ export default function FriendProfileScreen() {
           padding: spacing[6],
         }}
       >
-        <Text style={{ fontFamily: fonts.body, fontSize: fontSize.base[0], color: ink[500] }}>
-          Couldn&apos;t find that friend.
-        </Text>
+        {!isFriendLoading && (
+          <Text style={{ fontFamily: fonts.body, fontSize: fontSize.base[0], color: ink[500] }}>
+            Couldn&apos;t find that friend.
+          </Text>
+        )}
       </View>
     );
   }
@@ -80,7 +103,7 @@ export default function FriendProfileScreen() {
       >
         <FriendProfileHeader
           name={friend.name}
-          meta={friend.meta}
+          meta={FRIEND_META}
           avatarUri={friend.photos[0]}
           lookingToGetSetUp={friend.lookingToGetSetUp}
         />
@@ -93,11 +116,13 @@ export default function FriendProfileScreen() {
               onPress={() => router.push(`/matchmaker/select?preselect=${friend.id}` as never)}
             />
           )}
-          <Button
-            title={`See who ${firstName} could introduce you to`}
-            variant="secondary"
-            onPress={() => comingSoon(`${firstName}'s connections`)}
-          />
+          {!isWingmanOnly && (
+            <Button
+              title={`See who ${firstName} could introduce you to`}
+              variant="secondary"
+              onPress={() => comingSoon(`${firstName}'s connections`)}
+            />
+          )}
         </View>
       </ScrollView>
     </View>

@@ -1,7 +1,8 @@
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import Svg, { Path } from "react-native-svg";
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring } from "react-native-reanimated";
@@ -10,12 +11,11 @@ import { TwoPersonHeader } from "../../components/intro/TwoPersonHeader";
 import { IntroNoteCard } from "../../components/intro/IntroNoteCard";
 import { AboutSection } from "../../components/intro/AboutSection";
 import { Button } from "../../components/ui/Button";
-import { MOCK_INTROS } from "../../components/intro/mockIntros";
 import { MOCK_PHOTOS, MOCK_PROFILE_USER } from "../../components/profile/mockProfile";
 import { useAuthStore } from "../../store/auth";
-import { respondToIntroduction } from "../../lib/introductions";
+import { extractFunctionErrorMessage, getIntroductionDetail, respondToIntroduction } from "../../lib/introductions";
 import { getUserProfile } from "../../lib/supabase";
-import { ink, surface } from "../../constants/colors";
+import { coral, ink, surface } from "../../constants/colors";
 import { fonts } from "../../constants/typography";
 import { spacing } from "../../constants/spacing";
 
@@ -62,14 +62,25 @@ export default function IntroDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const userId = useAuthStore((s) => s.user?.id);
+  const queryClient = useQueryClient();
   const { data: profile } = useQuery({
     queryKey: ["userProfile", userId],
     queryFn: () => getUserProfile(userId!),
     enabled: !!userId,
   });
+  const { data: intro, isLoading: isIntroLoading } = useQuery({
+    queryKey: ["introDetail", id, userId],
+    queryFn: () => getIntroductionDetail(id!, userId!),
+    enabled: !!id && !!userId,
+  });
 
-  const intro = MOCK_INTROS.find((i) => i.id === id);
   const introId = intro?.id;
+  const [accepting, setAccepting] = useState(false);
+  const [acceptError, setAcceptError] = useState<string | null>(null);
+
+  function invalidateIncomingIntros() {
+    if (userId) queryClient.invalidateQueries({ queryKey: ["incomingIntros", userId] });
+  }
 
   const acceptScale = useSharedValue(1);
   const acceptAnimatedStyle = useAnimatedStyle(() => ({
@@ -85,7 +96,9 @@ export default function IntroDetailScreen() {
   function handleSkip() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (introId) {
-      respondToIntroduction(introId, "pass").catch((err) => console.warn("failed to record pass", err));
+      respondToIntroduction(introId, "pass")
+        .then(invalidateIncomingIntros)
+        .catch((err) => console.warn("failed to record pass", err));
     }
     if (router.canGoBack()) router.back();
   }
@@ -99,15 +112,22 @@ export default function IntroDetailScreen() {
     if (router.canGoBack()) router.back();
   }
 
-  function handleAccept() {
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    acceptScale.value = withSequence(withSpring(1.06, spring), withSpring(1, spring));
-    if (introId) {
-      respondToIntroduction(introId, "accept").catch((err) => console.warn("failed to record accept", err));
+  async function handleAccept() {
+    if (!introId || accepting) return;
+    setAccepting(true);
+    setAcceptError(null);
+    try {
+      await respondToIntroduction(introId, "accept");
+      invalidateIncomingIntros();
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      acceptScale.value = withSequence(withSpring(1.06, spring), withSpring(1, spring));
+      setTimeout(() => {
+        if (router.canGoBack()) router.back();
+      }, 180);
+    } catch (err) {
+      setAccepting(false);
+      setAcceptError(await extractFunctionErrorMessage(err, "Couldn't accept that intro. Try again."));
     }
-    setTimeout(() => {
-      if (router.canGoBack()) router.back();
-    }, 180);
   }
 
   return (
@@ -135,7 +155,9 @@ export default function IntroDetailScreen() {
 
       {!intro ? (
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: spacing[6] }}>
-          <Text style={{ fontFamily: fonts.body, color: ink[500] }}>This intro isn't available anymore.</Text>
+          {!isIntroLoading && (
+            <Text style={{ fontFamily: fonts.body, color: ink[500] }}>This intro isn't available anymore.</Text>
+          )}
         </View>
       ) : (
         <>
@@ -169,16 +191,21 @@ export default function IntroDetailScreen() {
               backgroundColor: surface.cream,
             }}
           >
+            {acceptError && (
+              <Text style={{ fontFamily: fonts.body, fontSize: 14, color: coral[500], textAlign: "center" }}>
+                {acceptError}
+              </Text>
+            )}
             <View style={{ flexDirection: "row", gap: spacing[2] }}>
               <View style={{ flex: 1 }}>
-                <Button title="Skip" variant="outline" onPress={handleSkip} />
+                <Button title="Skip" variant="outline" onPress={handleSkip} disabled={accepting} />
               </View>
               <View style={{ flex: 1 }}>
                 <SnoozeButton onPress={handleSnooze} />
               </View>
             </View>
             <Animated.View style={acceptAnimatedStyle}>
-              <Button title="Accept intro" variant="primary" onPress={handleAccept} />
+              <Button title="Accept intro" variant="primary" onPress={handleAccept} loading={accepting} />
             </Animated.View>
           </View>
         </>

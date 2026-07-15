@@ -33,8 +33,14 @@ export async function getMessages(chatId: string): Promise<Message[]> {
 }
 
 export function subscribeToMessages(chatId: string, onInsert: (message: Message) => void): () => void {
+  // Topic includes a per-call suffix, not just chatId: supabase-js reuses any
+  // channel object still in its registry for a given topic, and that reuse
+  // window can outlive a single mount -- removeChannel() is async (it awaits
+  // a server round trip before deregistering), so a fast remount (e.g. Fast
+  // Refresh) before that resolves would otherwise hand back the old, already
+  // -subscribed channel and throw on `.on()`.
   const channel = supabase
-    .channel(`messages:chat:${chatId}`)
+    .channel(`messages:chat:${chatId}:${Date.now()}:${Math.random().toString(36).slice(2)}`)
     .on(
       "postgres_changes",
       { event: "INSERT", schema: "public", table: "messages", filter: `chat_id=eq.${chatId}` },
@@ -109,8 +115,9 @@ export async function setLastViewed(chatId: string): Promise<void> {
 // messages the caller is allowed to see. Used by the Chats tab to know
 // when to invalidate its list query; the payload itself is unused.
 export function subscribeToInbox(onInsert: () => void): () => void {
+  // See subscribeToMessages for why the topic needs a per-call suffix.
   const channel = supabase
-    .channel("messages:inbox")
+    .channel(`messages:inbox:${Date.now()}:${Math.random().toString(36).slice(2)}`)
     .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, () => onInsert())
     .subscribe();
   return () => {

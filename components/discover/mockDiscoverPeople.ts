@@ -6,7 +6,7 @@ export interface DiscoverPerson {
   // ids into components/home/friendsMock.ts's MOCK_FRIENDS — which of the
   // viewer's own friends connect them to this person.
   mutualFriendIds: string[];
-  // Same semantics as FriendProfile's flag: false = not open to being set
+  // Same semantics as MatchmakerFriend's flag: false = not open to being set
   // up right now. Gates whether this person can ever appear in Discover at
   // all, enforced by getDiscoverPeople() below, not just visually.
   lookingToGetSetUp: boolean;
@@ -14,8 +14,8 @@ export interface DiscoverPerson {
 
 // Throwaway fixture data until friends-of-friends are wired to Supabase.
 // IDs are distinct from the viewer's own friends ("1"-"7" in friendsMock.ts/
-// mockMatchmakerFriends.ts/mockFriendProfiles.ts) — Discover never shows
-// people already in the viewer's friend list.
+// mockMatchmakerFriends.ts) — Discover never shows people already in the
+// viewer's friend list.
 export const MOCK_DISCOVER_PEOPLE: DiscoverPerson[] = [
   {
     id: "d1",

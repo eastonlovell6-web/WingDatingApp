@@ -27,6 +27,8 @@ import { fonts } from "../../constants/typography";
 import { radii } from "../../constants/spacing";
 
 const HEADER_PLANE = 18;
+const ENTRANCE_DELAY = 200;
+const ENTRANCE_DURATION = 260;
 
 function ChevronLeft() {
   return (
@@ -81,7 +83,10 @@ export default function Verify() {
 
   useEffect(() => {
     startCooldown();
-    const focusTimer = setTimeout(() => inputRef.current?.focus(), 300);
+    const focusTimer = setTimeout(
+      () => inputRef.current?.focus(),
+      ENTRANCE_DELAY + ENTRANCE_DURATION,
+    );
     return () => {
       clearTimeout(focusTimer);
       if (cooldownRef.current) clearInterval(cooldownRef.current);
@@ -165,7 +170,7 @@ export default function Verify() {
         {/* Entering animation and animated opacity live on separate views —
             combining them on one view makes Reanimated fight over `opacity`. */}
         <Animated.View
-          entering={FadeInUp.duration(260).delay(200)}
+          entering={FadeInUp.duration(ENTRANCE_DURATION).delay(ENTRANCE_DELAY)}
           style={{ flex: 1 }}
         >
         <Animated.View

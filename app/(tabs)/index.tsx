@@ -7,13 +7,13 @@ import { IntroFeed } from "../../components/home/IntroFeed";
 import { FriendsRow } from "../../components/home/FriendsRow";
 import { WingCardStack } from "../../components/home/WingCardStack";
 import { PromptCard } from "../../components/home/PromptCard";
-import { MOCK_INTROS } from "../../components/intro/mockIntros";
 import { MOCK_FRIENDS } from "../../components/home/friendsMock";
 import { TAB_BAR_CLEARANCE } from "../../components/home/TabBar";
 import { getIntroducibleFriends } from "../../components/matchmaker/mockMatchmakerFriends";
 import { getTodaysPrompt } from "../../lib/prompts";
 import { useAuthStore } from "../../store/auth";
 import { getUserProfile } from "../../lib/supabase";
+import { getIncomingIntroductions } from "../../lib/introductions";
 import { surface } from "../../constants/colors";
 import { spacing } from "../../constants/spacing";
 
@@ -36,10 +36,15 @@ export default function HomeScreen() {
     queryFn: () => getUserProfile(userId!),
     enabled: !!userId,
   });
+  const { data: intros } = useQuery({
+    queryKey: ["incomingIntros", userId],
+    queryFn: () => getIncomingIntroductions(userId!),
+    enabled: !!userId,
+  });
   // The app only ever addresses people by first name (see intro-note copy) —
   // `name` in the users table holds the full "First Last" string.
   const name = profile?.name?.split(" ")[0];
-  const introSubhead = formatIntroSubhead(MOCK_INTROS.map((intro) => intro.matchmakerName));
+  const introSubhead = formatIntroSubhead((intros ?? []).map((intro) => intro.matchmakerName));
   // Missing/null role (pre-existing users, or onboarding reached without an
   // intent param) defaults to the existing wing-me behavior.
   const isWingman = profile?.role === "wing-somebody";
@@ -65,7 +70,7 @@ export default function HomeScreen() {
         {isWingman ? (
           <PromptCard prompt={getTodaysPrompt()} introducibleCount={getIntroducibleFriends().length} />
         ) : (
-          <IntroFeed intros={MOCK_INTROS} />
+          <IntroFeed intros={intros ?? []} />
         )}
         {isWingman ? <WingCardStack friends={MOCK_FRIENDS} /> : <FriendsRow friends={MOCK_FRIENDS} />}
       </ScrollView>

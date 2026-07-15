@@ -5,10 +5,9 @@ export interface WingFriend {
 }
 
 // Throwaway fixture data until friendships are wired to Supabase.
-// imageUri is each friend's first photo from mockFriendProfiles.ts (same
-// ids, shared 1:1 across friendsMock/mockMatchmakerFriends/mockFriendProfiles
-// per existing code comments) — populated so FriendsRow and WingCardStack
-// show real faces instead of falling back to initials.
+// imageUri is each friend's first photo, ids shared 1:1 with
+// mockMatchmakerFriends.ts — populated so FriendsRow and WingCardStack show
+// real faces instead of falling back to initials.
 export const MOCK_FRIENDS: WingFriend[] = [
   { id: "1", name: "Sam Rivera", imageUri: "https://i.pravatar.cc/400?img=11" },
   { id: "2", name: "Priya Nair", imageUri: "https://i.pravatar.cc/400?img=21" },

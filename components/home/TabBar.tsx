@@ -4,6 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Circle, Line, Path } from "react-native-svg";
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -15,6 +16,8 @@ import { elevation } from "../../constants/elevation";
 import { fonts, fontSize } from "../../constants/typography";
 import { radii, spacing } from "../../constants/spacing";
 import { ChatsGlyph, IntrosGlyph } from "../ui/TabGlyphs";
+import { useAuthStore } from "../../store/auth";
+import { getUserProfile } from "../../lib/supabase";
 
 const spring = { mass: 0.4, damping: 12, stiffness: 220 };
 
@@ -80,6 +83,15 @@ function PlusIcon({ size = 22, color = "#FFFFFF" }: { size?: number; color?: str
 
 export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  const userId = useAuthStore((s) => s.user?.id);
+  const { data: profile } = useQuery({
+    queryKey: ["userProfile", userId],
+    queryFn: () => getUserProfile(userId!),
+    enabled: !!userId,
+  });
+  // Wingman-only users can never receive an intro, so a Chats tab would
+  // always be empty and just duplicate the Intros tab's sent-history view.
+  const isWingman = profile?.role === "wing-somebody";
   const fabScale = useSharedValue(1);
   const fabAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: fabScale.value }],
@@ -117,6 +129,7 @@ export function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
       >
         {state.routes
           .filter((route) => route.name in TAB_LABELS)
+          .filter((route) => !(isWingman && route.name === "chats"))
           .map((route) => {
             const isFocused = state.routes[state.index].key === route.key;
             const label = TAB_LABELS[route.name];

@@ -58,3 +58,22 @@ create policy "users_select_self_or_friend" on users
 -- an insert/update policy here when that screen ships.
 create policy "friendships_select_participant" on friendships
   for select using (auth.uid() = user_id or auth.uid() = friend_id);
+
+-- users_select_self_or_friend alone leaves a gap: Flow 1's whole premise is
+-- that user_a and user_b are usually strangers to each other (only the
+-- matchmaker is guaranteed to be friends with both, since Matchmaker Step 1
+-- only lets a matchmaker pick from their own friends list) — so with no
+-- friendships row between them, getIncomingIntroductions/
+-- getIntroductionDetail (lib/introductions.ts) silently lose the match's
+-- name/photos/prompts to RLS and fall back to "Someone" with nothing to
+-- show. Additive SELECT policy (permissive policies OR together): visible
+-- if you and that user are both matchmaker/user_a/user_b on the same
+-- introductions row, regardless of any friendships row.
+create policy "users_select_intro_participant" on users
+  for select using (
+    exists (
+      select 1 from introductions
+      where users.id in (introductions.matchmaker_id, introductions.user_a_id, introductions.user_b_id)
+        and auth.uid() in (introductions.matchmaker_id, introductions.user_a_id, introductions.user_b_id)
+    )
+  );

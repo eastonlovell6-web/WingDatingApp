@@ -38,6 +38,20 @@ export const MOCK_MATCHMAKER_FRIENDS: MatchmakerFriend[] = [
   { id: "7", name: "Kai Fischer", canIntroduce: true, activePendingCount: 2, lookingToGetSetUp: true },
 ];
 
+// Throwaway bio-prompt text for the daily-prompt flow's keyword matching
+// (lib/promptMatch.ts) — same ids as MOCK_MATCHMAKER_FRIENDS above. This
+// flow is still fully mock end to end (getIntroducibleFriends below), so
+// this stays local rather than reading real bio_prompts from Supabase.
+export const MOCK_BIO_TEXT: Record<string, string> = {
+  "1": "I will never turn down... A pickup game of pickleball, any time of day.",
+  "2": "The last thing that made me laugh out loud was... My little sister's audition tape for a cooking show.",
+  "3": "Ask me about the time I... Talked my way onto a closed ski lift in a snowstorm.",
+  "4": "I'm weirdly competitive about... Trivia night. I keep a running scoreboard on my fridge.",
+  "5": "I could talk for an hour about... Why the 1997 Jazz should've won it all.",
+  "6": "My friends would describe me in three words as... Loud, loyal, chronically late.",
+  "7": "A skill I'm proud of that has zero practical use... I can solve a Rubik's cube behind my back.",
+};
+
 // The wingman's introducible friends for the daily-prompt flow — friends
 // who've opted this user in to introduce them. Reordered elsewhere by
 // keyword match, never filtered further here (lookingToGetSetUp / pending

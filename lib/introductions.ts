@@ -1,6 +1,8 @@
 // lib/introductions.ts
 import { supabase } from "./supabase";
 import type { SentIntro } from "../components/intros/mockSentIntros";
+import type { IntroPreview, IntroDetail } from "../components/intro/mockIntros";
+import { MOCK_PROFILE_USER } from "../components/profile/mockProfile";
 
 /**
  * supabase-js's FunctionsHttpError always has a generic .message ("Edge
@@ -157,5 +159,107 @@ export async function getMatchmakerStats(matchmakerId: string): Promise<Matchmak
   return {
     introsSent: sentResult.count ?? 0,
     introsAccepted: acceptedResult.count ?? 0,
+  };
+}
+
+/**
+ * respond-to-introduction's state machine (see that function): both_pending
+ * means neither participant has responded; pending_a/pending_b means
+ * whichever slot is named still hasn't responded. So "still needs this
+ * viewer's action" is both_pending, or pending_<their own slot>.
+ */
+async function fetchIncomingIntroRows(userId: string) {
+  const [asA, asB] = await Promise.all([
+    supabase
+      .from("introductions")
+      .select("id, matchmaker_id, user_b_id, note, created_at")
+      .eq("user_a_id", userId)
+      .in("status", ["both_pending", "pending_a"]),
+    supabase
+      .from("introductions")
+      .select("id, matchmaker_id, user_a_id, note, created_at")
+      .eq("user_b_id", userId)
+      .in("status", ["both_pending", "pending_b"]),
+  ]);
+  if (asA.error) throw asA.error;
+  if (asB.error) throw asB.error;
+
+  return [
+    ...(asA.data ?? []).map((row) => ({ ...row, otherUserId: row.user_b_id })),
+    ...(asB.data ?? []).map((row) => ({ ...row, otherUserId: row.user_a_id })),
+  ].sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+}
+
+/**
+ * Feed-only fields (see IntroPreview in components/intro/mockIntros.ts) —
+ * deliberately skips photos/bio_prompts so the Home feed doesn't pull full
+ * profile data for every pending intro, just to render an avatar + note.
+ */
+export async function getIncomingIntroductions(userId: string): Promise<IntroPreview[]> {
+  const rows = await fetchIncomingIntroRows(userId);
+
+  const userIds = Array.from(new Set(rows.flatMap((r) => [r.matchmaker_id, r.otherUserId])));
+  const { data: users, error: usersError } =
+    userIds.length > 0
+      ? await supabase.from("users").select("id, name, photos").in("id", userIds)
+      : { data: [], error: null };
+  if (usersError) throw usersError;
+  const userById = new Map((users ?? []).map((u) => [u.id, u]));
+
+  return rows.map((row) => {
+    const matchmaker = userById.get(row.matchmaker_id);
+    const other = userById.get(row.otherUserId);
+    return {
+      id: row.id,
+      matchmakerName: (matchmaker?.name ?? "Someone").split(" ")[0],
+      matchmakerAvatarUri: matchmaker?.photos?.[0] ?? undefined,
+      note: row.note,
+      matchAvatarName: other?.name ?? "Someone",
+      matchAvatarUri: other?.photos?.[0] ?? undefined,
+    };
+  });
+}
+
+/**
+ * Single intro's full detail for the /intro/[id] screen. RLS
+ * (introductions_select_participant) already restricts the row to its
+ * matchmaker/user_a/user_b, so an id the viewer isn't part of just comes
+ * back null rather than needing a client-side participant check.
+ *
+ * matchAge/matchTagline stay mock — `users` has no age or single-line-bio
+ * column yet, same known gap MOCK_PROFILE_USER's own TODO already covers
+ * for the signed-in user on this same screen.
+ */
+export async function getIntroductionDetail(introId: string, viewerId: string): Promise<IntroDetail | null> {
+  const { data: intro, error } = await supabase
+    .from("introductions")
+    .select("id, matchmaker_id, user_a_id, user_b_id, note")
+    .eq("id", introId)
+    .maybeSingle();
+  if (error) throw error;
+  if (!intro) return null;
+
+  const otherUserId = viewerId === intro.user_a_id ? intro.user_b_id : intro.user_a_id;
+  const { data: users, error: usersError } = await supabase
+    .from("users")
+    .select("id, name, photos, bio_prompts")
+    .in("id", Array.from(new Set([intro.matchmaker_id, otherUserId])));
+  if (usersError) throw usersError;
+  const userById = new Map((users ?? []).map((u) => [u.id, u]));
+
+  const matchmaker = userById.get(intro.matchmaker_id);
+  const other = userById.get(otherUserId);
+
+  return {
+    id: intro.id,
+    matchmakerName: (matchmaker?.name ?? "Someone").split(" ")[0],
+    matchmakerAvatarUri: matchmaker?.photos?.[0] ?? undefined,
+    note: intro.note,
+    matchAvatarName: other?.name ?? "Someone",
+    matchAvatarUri: other?.photos?.[0] ?? undefined,
+    matchAge: MOCK_PROFILE_USER.age,
+    matchTagline: MOCK_PROFILE_USER.tagline,
+    matchPhotos: other?.photos ?? [],
+    matchPrompts: other?.bio_prompts ?? [],
   };
 }
