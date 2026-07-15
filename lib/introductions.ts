@@ -126,3 +126,36 @@ export async function getSentIntroductions(matchmakerId: string): Promise<SentIn
     };
   });
 }
+
+export interface MatchmakerStats {
+  introsSent: number;
+  introsAccepted: number;
+}
+
+/**
+ * Aggregate counts only, per the matchmaker-firewall privacy rule — no
+ * status or chat data leaves this function, just two numbers. introsSent
+ * excludes withdrawn, matching getSentIntroductions' convention (a
+ * withdrawn intro was never "sent").
+ */
+export async function getMatchmakerStats(matchmakerId: string): Promise<MatchmakerStats> {
+  const [sentResult, acceptedResult] = await Promise.all([
+    supabase
+      .from("introductions")
+      .select("id", { count: "exact", head: true })
+      .eq("matchmaker_id", matchmakerId)
+      .neq("status", "withdrawn"),
+    supabase
+      .from("introductions")
+      .select("id", { count: "exact", head: true })
+      .eq("matchmaker_id", matchmakerId)
+      .eq("status", "accepted"),
+  ]);
+  if (sentResult.error) throw sentResult.error;
+  if (acceptedResult.error) throw acceptedResult.error;
+
+  return {
+    introsSent: sentResult.count ?? 0,
+    introsAccepted: acceptedResult.count ?? 0,
+  };
+}
