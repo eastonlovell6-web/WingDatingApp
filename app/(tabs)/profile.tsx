@@ -25,13 +25,13 @@ import { PrivacyPanel } from "../../components/profile/PrivacyPanel";
 import { TAB_BAR_CLEARANCE } from "../../components/home/TabBar";
 import { useAuthStore } from "../../store/auth";
 import { getUserProfile, uploadProfilePhoto, upsertUserProfile } from "../../lib/supabase";
+import { getMatchmakerStats } from "../../lib/introductions";
+import { getIntroducersCount } from "../../lib/friendships";
 import { surface } from "../../constants/colors";
 import { spacing } from "../../constants/spacing";
 import {
   MOCK_BADGES,
   MOCK_BLOCKED_COUNT,
-  MOCK_HAS_SENT_INTROS,
-  MOCK_INTRODUCERS_COUNT,
   MOCK_MATCHMAKER_STATS,
   MOCK_NEXT_MILESTONE_COPY,
   MOCK_PHOTOS,
@@ -184,6 +184,17 @@ export default function ProfileScreen() {
   });
   const pendingIntro = sentIntros.find((intro) => intro.status === "pending");
 
+  const { data: matchmakerStats } = useQuery({
+    queryKey: ["matchmakerStats", userId],
+    queryFn: () => getMatchmakerStats(userId!),
+    enabled: !!userId,
+  });
+  const { data: introducersCount } = useQuery({
+    queryKey: ["introducersCount", userId],
+    queryFn: () => getIntroducersCount(userId!),
+    enabled: !!userId,
+  });
+
   return (
     <View style={{ flex: 1, backgroundColor: surface.cream }}>
       <View
@@ -230,9 +241,9 @@ export default function ProfileScreen() {
             <MatchmakerPanel
               score={MOCK_MATCHMAKER_STATS.score}
               percentileLabel={MOCK_MATCHMAKER_STATS.percentileLabel}
-              introsSent={MOCK_MATCHMAKER_STATS.introsSent}
-              introsAccepted={MOCK_MATCHMAKER_STATS.introsAccepted}
-              hasSentIntros={MOCK_HAS_SENT_INTROS}
+              introsSent={matchmakerStats?.introsSent ?? 0}
+              introsAccepted={matchmakerStats?.introsAccepted ?? 0}
+              hasSentIntros={(matchmakerStats?.introsSent ?? 0) > 0}
               badges={MOCK_BADGES}
               rankProgress={MOCK_RANK_PROGRESS}
               nextMilestoneCopy={MOCK_NEXT_MILESTONE_COPY}
@@ -243,7 +254,7 @@ export default function ProfileScreen() {
 
           {activeIndex === 2 && (
             <PrivacyPanel
-              introducersCount={MOCK_INTRODUCERS_COUNT}
+              introducersCount={introducersCount ?? 0}
               blockedCount={MOCK_BLOCKED_COUNT}
               settings={privacySettings}
               onSettingsChange={setPrivacySettings}

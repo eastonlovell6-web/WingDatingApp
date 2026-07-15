@@ -63,12 +63,12 @@ export const MOCK_PROMPTS: ProfilePrompt[] = [
   },
 ];
 
-// TODO: replace with a real `matchmaker_stats` row for the signed-in user.
+// TODO: replace with a real progression formula — see docs/superpowers/specs
+// /2026-07-15-profile-matchmaker-counts-design.md. introsSent/introsAccepted
+// are real now (lib/introductions.ts's getMatchmakerStats).
 export const MOCK_MATCHMAKER_STATS = {
   score: 82,
   percentileLabel: "You're in the top 15% of matchmakers this month.",
-  introsSent: 6,
-  introsAccepted: 4,
 };
 
 export interface MatchmakerRankProgress {
@@ -99,18 +99,12 @@ export const MOCK_RANK_PROGRESS: MatchmakerRankProgress = {
 // percentileLabel above.
 export const MOCK_NEXT_MILESTONE_COPY = "2 more intros to reach 100";
 
-// TODO: replace with 0 sent-intros count from `matchmaker_stats` to test the empty nudge state for real.
-export const MOCK_HAS_SENT_INTROS = true;
-
 // TODO: derive from thresholds against `matchmaker_stats` once that table is real.
 export const MOCK_BADGES: MatchmakerBadge[] = [
   { id: "1", label: "Top Matchmaker", tone: "butter", variant: "outline" },
   { id: "2", label: "5 Intros Sent", tone: "plum", variant: "outline" },
   { id: "3", label: "3 Matches Made", tone: "mint", variant: "outline" },
 ];
-
-// TODO: replace with the count of friendships where can_introduce = true.
-export const MOCK_INTRODUCERS_COUNT = 12;
 
 // TODO: replace with a real blocked/hidden users table once it exists.
 export const MOCK_BLOCKED_COUNT = 0;
