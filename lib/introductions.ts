@@ -162,6 +162,28 @@ export async function getMatchmakerStats(matchmakerId: string): Promise<Matchmak
   };
 }
 
+export interface LeaderboardStatsEntry {
+  id: string;
+  name: string;
+  avatarUri?: string;
+  introsSent: number;
+  introsAccepted: number;
+}
+
+/**
+ * Friend-group leaderboard stats (self + direct friends). RLS blocks a
+ * client-side read of another user's introductions rows, so this goes
+ * through the matchmaker-leaderboard Edge Function (admin client, same
+ * pattern as discover-people/discover-person) rather than a direct query.
+ */
+export async function getMatchmakerLeaderboardStats(): Promise<LeaderboardStatsEntry[]> {
+  const { data, error } = await supabase.functions.invoke<{ entries: LeaderboardStatsEntry[] }>(
+    "matchmaker-leaderboard"
+  );
+  if (error) throw error;
+  return data?.entries ?? [];
+}
+
 /**
  * respond-to-introduction's state machine (see that function): both_pending
  * means neither participant has responded; pending_a/pending_b means
