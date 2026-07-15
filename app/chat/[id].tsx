@@ -40,10 +40,21 @@ export default function ChatScreen() {
     enabled: !!id,
   });
 
+  function markViewed(chatId: string) {
+    setLastViewed(chatId)
+      .then(() => {
+        // The Chats tab stays mounted underneath this pushed screen, so its
+        // ["chats", userId] query won't otherwise learn that lastViewed moved —
+        // invalidate it so the unread badge is correct next time it's observed.
+        if (userId) queryClient.invalidateQueries({ queryKey: ["chats", userId] });
+      })
+      .catch((err) => console.warn("failed to mark chat viewed", err));
+  }
+
   useEffect(() => {
     if (!id) return;
-    setLastViewed(id).catch((err) => console.warn("failed to mark chat viewed", err));
-  }, [id]);
+    markViewed(id);
+  }, [id, userId]);
 
   useEffect(() => {
     if (!id) return;
@@ -63,7 +74,7 @@ export default function ChatScreen() {
         }
         return [...prev, message];
       });
-      setLastViewed(id).catch((err) => console.warn("failed to mark chat viewed", err));
+      markViewed(id);
     });
   }, [id, queryClient, userId]);
 
