@@ -13,11 +13,20 @@
 create table invites (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null references auth.users(id) on delete cascade,
+  slot_index smallint not null,
   code text not null unique,
   status text not null default 'unsent' check (status in ('unsent', 'sent')),
   created_at timestamptz not null default now(),
   sent_at timestamptz
 );
+
+-- Concurrent seeding safety: a user's first Invite-page visit racing across
+-- two clients (two devices, or any double-fire) would otherwise both observe
+-- 0 existing rows and each insert 5, yielding up to 10 permanent rows with no
+-- way to trim them. The (owner_id, slot_index) unique constraint lets
+-- lib/invites.ts seed via upsert-with-ignoreDuplicates, so a losing
+-- concurrent insert silently no-ops instead of creating an extra row.
+alter table invites add constraint invites_owner_slot_unique unique (owner_id, slot_index);
 
 alter table invites enable row level security;
 

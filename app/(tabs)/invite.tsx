@@ -87,9 +87,11 @@ export default function InviteScreen() {
           >
             Invite Friends
           </Text>
-          <Text style={{ fontFamily: fonts.body, fontSize: fontSize.base[0], color: ink[500] }}>
-            {remaining > 0 ? `You have ${remaining} of 5 invites left` : "All invites sent"}
-          </Text>
+          {!isLoading && (
+            <Text style={{ fontFamily: fonts.body, fontSize: fontSize.base[0], color: ink[500] }}>
+              {remaining > 0 ? `You have ${remaining} of 5 invites left` : "All invites sent"}
+            </Text>
+          )}
         </View>
 
         {isLoading ? (

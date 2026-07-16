@@ -18,15 +18,19 @@ function generateInviteCode(): string {
   return `WING-${suffix}`;
 }
 
-// Postgres unique_violation — retry with a freshly generated code rather
-// than failing the whole seed pass.
-async function insertInviteWithRetry(userId: string, attempt = 0): Promise<void> {
-  const { error } = await supabase
-    .from("invites")
-    .insert({ owner_id: userId, code: generateInviteCode() });
+// Upsert on (owner_id, slot_index) with ignoreDuplicates: a losing concurrent
+// seed attempt (e.g. two devices opening the Invite page at once) silently
+// no-ops instead of creating extra rows past the 5-slot cap. A 23505 here is
+// therefore always the *code* unique constraint (astronomically rare random
+// collision, not the slot race) — retry with a freshly generated code.
+async function insertInviteSlot(userId: string, slotIndex: number, attempt = 0): Promise<void> {
+  const { error } = await supabase.from("invites").upsert(
+    { owner_id: userId, slot_index: slotIndex, code: generateInviteCode() },
+    { onConflict: "owner_id,slot_index", ignoreDuplicates: true }
+  );
   if (error) {
     if (error.code === "23505" && attempt < 5) {
-      return insertInviteWithRetry(userId, attempt + 1);
+      return insertInviteSlot(userId, slotIndex, attempt + 1);
     }
     throw error;
   }
@@ -34,7 +38,7 @@ async function insertInviteWithRetry(userId: string, attempt = 0): Promise<void>
 
 async function seedInviteSlots(userId: string): Promise<void> {
   for (let i = 0; i < SLOT_COUNT; i++) {
-    await insertInviteWithRetry(userId);
+    await insertInviteSlot(userId, i);
   }
 }
 
@@ -48,7 +52,7 @@ export async function getInviteSlots(userId: string): Promise<InviteSlot[]> {
     .from("invites")
     .select("id, code, status")
     .eq("owner_id", userId)
-    .order("created_at", { ascending: true });
+    .order("slot_index", { ascending: true });
   if (selectError) throw selectError;
   if (existing && existing.length > 0) return existing;
 
@@ -58,7 +62,7 @@ export async function getInviteSlots(userId: string): Promise<InviteSlot[]> {
     .from("invites")
     .select("id, code, status")
     .eq("owner_id", userId)
-    .order("created_at", { ascending: true });
+    .order("slot_index", { ascending: true });
   if (reselectError) throw reselectError;
   return seeded ?? [];
 }
