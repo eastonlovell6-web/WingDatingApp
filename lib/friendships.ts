@@ -120,3 +120,97 @@ export async function getIntroducersCount(userId: string): Promise<number> {
   if (error) throw error;
   return count ?? 0;
 }
+
+const NEW_FRIEND_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+
+export interface FriendVisibilityEntry {
+  id: string;
+  name: string;
+  imageUri?: string;
+  canIntroduce: boolean;
+  createdAt: string;
+  isNew: boolean;
+}
+
+/**
+ * The signed-in user's own friendships rows (user_id = userId — the
+ * direction that represents "friends I've granted, or could grant,
+ * permission to introduce me"; see getMatchmakerFriends above for the
+ * opposite direction). Sorted new-first (most recently joined at the top,
+ * newest to oldest within that group), then everyone else alphabetically —
+ * Friend Visibility Settings screen use.
+ */
+export async function getFriendVisibilityList(userId: string): Promise<FriendVisibilityEntry[]> {
+  const { data: friendshipRows, error: friendshipsError } = await supabase
+    .from("friendships")
+    .select("friend_id, can_introduce, created_at")
+    .eq("user_id", userId);
+  if (friendshipsError) throw friendshipsError;
+
+  const friendIds: string[] = (friendshipRows ?? []).map((row) => row.friend_id);
+  if (friendIds.length === 0) return [];
+
+  const rowByFriendId = new Map((friendshipRows ?? []).map((row) => [row.friend_id, row]));
+
+  const { data: users, error: usersError } = await supabase
+    .from("users")
+    .select("id, name, photos")
+    .in("id", friendIds);
+  if (usersError) throw usersError;
+
+  const now = Date.now();
+  const entries: FriendVisibilityEntry[] = (users ?? []).map((user) => {
+    const row = rowByFriendId.get(user.id)!;
+    return {
+      id: user.id,
+      name: user.name,
+      imageUri: user.photos?.[0] ?? undefined,
+      canIntroduce: row.can_introduce,
+      createdAt: row.created_at,
+      isNew: now - new Date(row.created_at).getTime() < NEW_FRIEND_WINDOW_MS,
+    };
+  });
+
+  return entries.sort((a, b) => {
+    if (a.isNew !== b.isNew) return a.isNew ? -1 : 1;
+    if (a.isNew) return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    return a.name.localeCompare(b.name);
+  });
+}
+
+/**
+ * Toggle whether a single friend can introduce the signed-in user. Requires
+ * the friendships_update_own RLS policy
+ * (supabase/sql/006_friendships_update_policy.sql) — without it this
+ * throws a permission error.
+ */
+export async function setFriendCanIntroduce(
+  userId: string,
+  friendId: string,
+  canIntroduce: boolean
+): Promise<void> {
+  const { error } = await supabase
+    .from("friendships")
+    .update({ can_introduce: canIntroduce })
+    .eq("user_id", userId)
+    .eq("friend_id", friendId);
+  if (error) throw error;
+}
+
+/**
+ * Bulk version of setFriendCanIntroduce for the Select All / None quick
+ * actions on the Friend Visibility Settings screen.
+ */
+export async function setAllFriendsCanIntroduce(
+  userId: string,
+  friendIds: string[],
+  canIntroduce: boolean
+): Promise<void> {
+  if (friendIds.length === 0) return;
+  const { error } = await supabase
+    .from("friendships")
+    .update({ can_introduce: canIntroduce })
+    .eq("user_id", userId)
+    .in("friend_id", friendIds);
+  if (error) throw error;
+}
