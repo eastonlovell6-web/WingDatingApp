@@ -17,7 +17,7 @@ export function computeNextMilestoneCopy(introsAccepted: number): string {
 
 export function computePercentileLabel(rank: number, groupSize: number): string {
   if (groupSize < 2) return "Invite friends to see how you rank.";
-  const percentile = Math.round((1 - (rank - 1) / groupSize) * 100);
+  const percentile = Math.round((rank / groupSize) * 100);
   return `You're in the top ${percentile}% of matchmakers in your friend group.`;
 }
 
