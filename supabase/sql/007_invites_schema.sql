@@ -24,3 +24,12 @@ alter table invites enable row level security;
 create policy "invites_select_own" on invites for select using (auth.uid() = owner_id);
 create policy "invites_insert_own" on invites for insert with check (auth.uid() = owner_id);
 create policy "invites_update_own" on invites for update using (auth.uid() = owner_id);
+
+-- Grant base table privileges: raw SQL table creation doesn't auto-grant
+-- base privileges to `authenticated` the way the Studio Table Editor does
+-- (see 004_grant_friendships_select.sql, 006_friendships_update_policy.sql).
+-- Without these grants, Postgres throws "permission denied for table invites"
+-- regardless of the RLS policies above, since the base grant is checked before RLS.
+grant select on public.invites to authenticated;
+grant insert on public.invites to authenticated;
+grant update on public.invites to authenticated;
