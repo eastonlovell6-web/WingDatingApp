@@ -70,6 +70,18 @@ export async function getMatchmakerFriends(userId: string): Promise<MatchmakerFr
   }));
 }
 
+/**
+ * The wingman's introducible friends for the daily-prompt flow — friends
+ * who've opted this user in to introduce them. Reordered elsewhere by
+ * keyword match, never filtered further here (lookingToGetSetUp / pending
+ * cap are re-checked downstream by getFriendEligibility when the picked
+ * friend lands on Matchmaker Step 1 via ?preselect=).
+ */
+export async function getIntroducibleFriends(userId: string): Promise<MatchmakerFriend[]> {
+  const friends = await getMatchmakerFriends(userId);
+  return friends.filter((friend) => friend.canIntroduce);
+}
+
 export interface FriendProfileData {
   id: string;
   name: string;

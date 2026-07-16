@@ -1,13 +1,15 @@
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { router } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
 import Svg, { Path } from "react-native-svg";
 import * as Haptics from "expo-haptics";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Avatar } from "../../components/ui/Avatar";
-import { getIntroducibleFriends } from "../../components/matchmaker/mockMatchmakerFriends";
+import { getIntroducibleFriends } from "../../lib/friendships";
 import { sortFriendsByPromptMatch } from "../../lib/promptMatch";
 import { getTodaysPrompt } from "../../lib/prompts";
-import { ink, surface } from "../../constants/colors";
+import { useAuthStore } from "../../store/auth";
+import { coral, ink, surface } from "../../constants/colors";
 import { fonts, fontSize, textStyles } from "../../constants/typography";
 import { radii, spacing } from "../../constants/spacing";
 
@@ -27,8 +29,14 @@ function XIcon() {
 
 export default function PromptFriendsScreen() {
   const insets = useSafeAreaInsets();
+  const userId = useAuthStore((s) => s.user?.id);
   const prompt = getTodaysPrompt();
-  const friends = sortFriendsByPromptMatch(getIntroducibleFriends(), prompt.keywords);
+  const { data: introducibleFriends, isLoading } = useQuery({
+    queryKey: ["introducibleFriends", userId],
+    queryFn: () => getIntroducibleFriends(userId!),
+    enabled: !!userId,
+  });
+  const friends = sortFriendsByPromptMatch(introducibleFriends ?? [], prompt.keywords);
 
   function handleSelect(friendId: string) {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -75,44 +83,50 @@ export default function PromptFriendsScreen() {
         <Text style={textStyles.caption}>Tap a friend to start their intro.</Text>
       </View>
 
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{
-          paddingHorizontal: spacing[6],
-          paddingTop: spacing[6],
-          paddingBottom: insets.bottom + spacing[6],
-          gap: spacing[4],
-        }}
-        showsVerticalScrollIndicator={false}
-      >
-        {friends.map((friend, index) => (
-          <Pressable
-            key={friend.id}
-            onPress={() => handleSelect(friend.id)}
-            accessibilityRole="button"
-            accessibilityLabel={friend.name}
-          >
-            {({ pressed }) => (
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  gap: spacing[4],
-                  padding: spacing[4],
-                  borderRadius: radii.md,
-                  backgroundColor: surface.paper,
-                  transform: [{ scale: pressed ? 0.98 : 1 }],
-                }}
-              >
-                <Avatar name={friend.name} size={48} index={index} imageUri={friend.imageUri} />
-                <Text style={{ fontFamily: fonts.bodyMedium, fontSize: fontSize.base[0], color: ink[900] }}>
-                  {friend.name}
-                </Text>
-              </View>
-            )}
-          </Pressable>
-        ))}
-      </ScrollView>
+      {isLoading ? (
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
+          <ActivityIndicator color={coral[500]} />
+        </View>
+      ) : (
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{
+            paddingHorizontal: spacing[6],
+            paddingTop: spacing[6],
+            paddingBottom: insets.bottom + spacing[6],
+            gap: spacing[4],
+          }}
+          showsVerticalScrollIndicator={false}
+        >
+          {friends.map((friend, index) => (
+            <Pressable
+              key={friend.id}
+              onPress={() => handleSelect(friend.id)}
+              accessibilityRole="button"
+              accessibilityLabel={friend.name}
+            >
+              {({ pressed }) => (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: spacing[4],
+                    padding: spacing[4],
+                    borderRadius: radii.md,
+                    backgroundColor: surface.paper,
+                    transform: [{ scale: pressed ? 0.98 : 1 }],
+                  }}
+                >
+                  <Avatar name={friend.name} size={48} index={index} imageUri={friend.imageUri} />
+                  <Text style={{ fontFamily: fonts.bodyMedium, fontSize: fontSize.base[0], color: ink[900] }}>
+                    {friend.name}
+                  </Text>
+                </View>
+              )}
+            </Pressable>
+          ))}
+        </ScrollView>
+      )}
     </View>
   );
 }

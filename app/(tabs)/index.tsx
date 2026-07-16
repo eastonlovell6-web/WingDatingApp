@@ -7,13 +7,12 @@ import { IntroFeed } from "../../components/home/IntroFeed";
 import { FriendsRow } from "../../components/home/FriendsRow";
 import { WingCardStack } from "../../components/home/WingCardStack";
 import { PromptCard } from "../../components/home/PromptCard";
-import { MOCK_FRIENDS } from "../../components/home/friendsMock";
 import { TAB_BAR_CLEARANCE } from "../../components/home/TabBar";
-import { getIntroducibleFriends } from "../../components/matchmaker/mockMatchmakerFriends";
 import { getTodaysPrompt } from "../../lib/prompts";
 import { useAuthStore } from "../../store/auth";
 import { getUserProfile } from "../../lib/supabase";
 import { getIncomingIntroductions } from "../../lib/introductions";
+import { getIntroducibleFriends, getMatchmakerFriends } from "../../lib/friendships";
 import { surface } from "../../constants/colors";
 import { spacing } from "../../constants/spacing";
 
@@ -41,6 +40,11 @@ export default function HomeScreen() {
     queryFn: () => getIncomingIntroductions(userId!),
     enabled: !!userId,
   });
+  const { data: friends } = useQuery({
+    queryKey: ["matchmakerFriends", userId],
+    queryFn: () => getMatchmakerFriends(userId!),
+    enabled: !!userId,
+  });
   // The app only ever addresses people by first name (see intro-note copy) —
   // `name` in the users table holds the full "First Last" string.
   const name = profile?.name?.split(" ")[0];
@@ -48,6 +52,11 @@ export default function HomeScreen() {
   // Missing/null role (pre-existing users, or onboarding reached without an
   // intent param) defaults to the existing wing-me behavior.
   const isWingman = profile?.role === "wing-somebody";
+  const { data: introducibleFriends } = useQuery({
+    queryKey: ["introducibleFriends", userId],
+    queryFn: () => getIntroducibleFriends(userId!),
+    enabled: !!userId && isWingman,
+  });
 
   return (
     <View style={{ flex: 1, backgroundColor: surface.cream }}>
@@ -68,11 +77,15 @@ export default function HomeScreen() {
           onDiscoverPress={() => router.push("/discover" as never)}
         />
         {isWingman ? (
-          <PromptCard prompt={getTodaysPrompt()} introducibleCount={getIntroducibleFriends().length} />
+          <PromptCard prompt={getTodaysPrompt()} introducibleCount={(introducibleFriends ?? []).length} />
         ) : (
           <IntroFeed intros={intros ?? []} />
         )}
-        {isWingman ? <WingCardStack friends={MOCK_FRIENDS} /> : <FriendsRow friends={MOCK_FRIENDS} />}
+        {isWingman ? (
+          <WingCardStack friends={friends ?? []} />
+        ) : (
+          <FriendsRow friends={friends ?? []} />
+        )}
       </ScrollView>
     </View>
   );
