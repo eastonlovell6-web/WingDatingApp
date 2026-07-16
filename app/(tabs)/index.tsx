@@ -75,11 +75,12 @@ export default function HomeScreen() {
           loading={!!userId && isLoading}
           subhead={introSubhead}
           onDiscoverPress={() => router.push("/discover" as never)}
+          onInvitePress={() => router.push("/invite" as never)}
         />
         {isWingman ? (
           <PromptCard prompt={getTodaysPrompt()} introducibleCount={(introducibleFriends ?? []).length} />
         ) : (
-          <IntroFeed intros={intros ?? []} />
+          <IntroFeed intros={intros ?? []} onInvitePress={() => router.push("/invite" as never)} />
         )}
         {isWingman ? (
           <WingCardStack friends={friends ?? []} />
