@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
 import { router } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -144,17 +144,19 @@ export default function FriendVisibilityScreen() {
         )}
 
         {!isLoading && listItems.length > 0 && (
-          <GroupCard>
-            <View style={{ padding: spacing[4] }}>
-              <FriendVisibilityList
-                friends={listItems}
-                visibility={visibility}
-                onToggle={handleToggle}
-                onSelectAll={handleSelectAll}
-                onSelectNone={handleSelectNone}
-              />
-            </View>
-          </GroupCard>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: spacing[8] }}>
+            <GroupCard>
+              <View style={{ padding: spacing[4] }}>
+                <FriendVisibilityList
+                  friends={listItems}
+                  visibility={visibility}
+                  onToggle={handleToggle}
+                  onSelectAll={handleSelectAll}
+                  onSelectNone={handleSelectNone}
+                />
+              </View>
+            </GroupCard>
+          </ScrollView>
         )}
       </View>
     </View>
