@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Alert, ScrollView, View } from "react-native";
+import { router } from "expo-router";
 import type * as ImagePickerTypes from "expo-image-picker";
 // Defensive require — matches the pattern in (auth)/onboarding.tsx: guards
 // against the TurboModule crashing on custom dev builds missing a native
@@ -285,7 +286,7 @@ export default function ProfileScreen() {
               blockedCount={MOCK_BLOCKED_COUNT}
               settings={privacySettings}
               onSettingsChange={setPrivacySettings}
-              onVisibilityPress={() => comingSoon("Friend visibility settings")}
+              onVisibilityPress={() => router.push("/settings/friend-visibility" as never)}
               onBlockedListPress={() => comingSoon("Blocked & hidden")}
               onAccountSettingsPress={() => comingSoon("Account settings")}
             />
