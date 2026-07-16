@@ -15,7 +15,7 @@ function ChevronIcon({ size = 18, color = ink[300] }: { size?: number; color?: s
   );
 }
 
-function GroupCard({ children }: { children: React.ReactNode }) {
+export function GroupCard({ children }: { children: React.ReactNode }) {
   return (
     <View
       style={{

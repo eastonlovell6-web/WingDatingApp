@@ -52,7 +52,7 @@ export function FriendVisibilityList({
   onSelectAll,
   onSelectNone,
 }: {
-  friends: { id: string; name: string }[];
+  friends: { id: string; name: string; isNew?: boolean; caption?: string }[];
   visibility: Record<string, boolean>;
   onToggle: (id: string) => void;
   onSelectAll: () => void;
@@ -109,6 +109,8 @@ export function FriendVisibilityList({
             index={i}
             value={visibility[friend.id] ?? false}
             onToggle={onToggle}
+            isNew={friend.isNew}
+            caption={friend.caption}
           />
         ))}
         {filtered.length === 0 && (

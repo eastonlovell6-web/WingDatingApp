@@ -2,6 +2,7 @@ import { View, Text, Switch, Platform } from "react-native";
 import { coral, ink, plum, surface } from "../../constants/colors";
 import { fonts } from "../../constants/typography";
 import { radii } from "../../constants/spacing";
+import { Badge } from "../ui/Badge";
 
 // Alternating tint so a long list of initials avatars doesn't read as flat.
 const TINTS = [
@@ -24,12 +25,16 @@ export function FriendVisibilityRow({
   index,
   value,
   onToggle,
+  isNew,
+  caption,
 }: {
   id: string;
   name: string;
   index: number;
   value: boolean;
   onToggle: (id: string) => void;
+  isNew?: boolean;
+  caption?: string;
 }) {
   const tint = TINTS[index % TINTS.length];
 
@@ -57,16 +62,15 @@ export function FriendVisibilityRow({
         </Text>
       </View>
 
-      <Text
-        style={{
-          flex: 1,
-          fontFamily: fonts.body,
-          fontSize: 16,
-          color: ink[900],
-        }}
-      >
-        {name}
-      </Text>
+      <View style={{ flex: 1, gap: 2 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <Text style={{ fontFamily: fonts.body, fontSize: 16, color: ink[900] }}>{name}</Text>
+          {isNew && <Badge label="NEW" tone="butter" />}
+        </View>
+        {caption && (
+          <Text style={{ fontFamily: fonts.body, fontSize: 14, color: ink[500] }}>{caption}</Text>
+        )}
+      </View>
 
       <Switch
         value={value}
