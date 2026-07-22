@@ -276,7 +276,7 @@ export default function ProfileScreen() {
               rankProgress={rankProgress}
               nextMilestoneCopy={nextMilestoneCopy}
               pendingIntro={pendingIntro}
-              onMakeIntroPress={() => comingSoon("Matchmaker")}
+              onMakeIntroPress={() => router.push("/matchmaker/select" as never)}
             />
           )}
 

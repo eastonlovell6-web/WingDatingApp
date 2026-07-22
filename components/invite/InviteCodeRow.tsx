@@ -1,7 +1,7 @@
 import { Text, View } from "react-native";
 import { Button } from "../ui/Button";
 import { Badge } from "../ui/Badge";
-import { ink, shadowTint, surface } from "../../constants/colors";
+import { coral, shadowTint, surface } from "../../constants/colors";
 import { fonts, fontSize } from "../../constants/typography";
 import { radii, spacing } from "../../constants/spacing";
 
@@ -35,18 +35,18 @@ export function InviteCodeRow({ code, status, onShare }: InviteCodeRowProps) {
           fontFamily: fonts.mono,
           fontSize: fontSize.base[0],
           lineHeight: fontSize.base[1],
-          color: ink[900],
+          color: coral[600],
         }}
       >
         {code}
       </Text>
 
       {isSent ? (
-        <Badge label="Sent" tone="plum" variant="outline" textColor={ink[500]} />
+        <Badge label="Sent" tone="plum" />
       ) : (
         <Button
           title="Share"
-          variant="outline"
+          variant="primary"
           onPress={onShare}
           style={{ height: 44, paddingHorizontal: 20 }}
         />

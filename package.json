@@ -8,7 +8,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "seed:test-users": "node --env-file=.env.local --experimental-websocket scripts/seed-test-users.mjs"
   },
   "private": true,
   "dependencies": {

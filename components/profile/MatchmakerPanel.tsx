@@ -146,7 +146,6 @@ function EmptyMatchmakerNudge({ onMakeIntroPress }: { onMakeIntroPress?: () => v
         title="Make your first intro"
         onPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          // TODO: router.push('/matchmaker/select') once that screen exists.
           onMakeIntroPress?.();
         }}
         style={{ marginTop: spacing[2] }}

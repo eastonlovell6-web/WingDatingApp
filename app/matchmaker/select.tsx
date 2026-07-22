@@ -98,9 +98,7 @@ export default function MatchmakerSelectScreen() {
   }
 
   function handleInvitePress() {
-    // TODO: hand off to the Invite flow once it exists (same stub convention
-    // as FriendsRow.handleFriendPress / HomeHeader's unwired onInvitePress).
-    console.log("[matchmaker/select] invite friends tapped");
+    router.push("/invite" as never);
   }
 
   const headline = selectedIds.length === 0 ? "Who should meet?" : "Nice. Who's their match?";

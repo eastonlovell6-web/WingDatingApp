@@ -7,7 +7,7 @@ import { InviteCodeRow } from "../../components/invite/InviteCodeRow";
 import { getInviteSlots, markInviteSent, type InviteSlot } from "../../lib/invites";
 import { useAuthStore } from "../../store/auth";
 import { ink, surface } from "../../constants/colors";
-import { fonts, fontSize } from "../../constants/typography";
+import { fonts, fontSize, textStyles } from "../../constants/typography";
 import { spacing } from "../../constants/spacing";
 
 function BackIcon() {
@@ -88,7 +88,7 @@ export default function InviteScreen() {
             Invite Friends
           </Text>
           {!isLoading && (
-            <Text style={{ fontFamily: fonts.body, fontSize: fontSize.base[0], color: ink[500] }}>
+            <Text style={[textStyles.eyebrow, remaining === 0 && { color: ink[500] }]}>
               {remaining > 0 ? `You have ${remaining} of 5 invites left` : "All invites sent"}
             </Text>
           )}
