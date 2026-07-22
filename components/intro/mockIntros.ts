@@ -21,3 +21,15 @@ export interface IntroDetail extends IntroPreview {
   matchPhotos: string[];
   matchPrompts: ProfilePrompt[];
 }
+
+// Recipient-facing status card for an intro you've already accepted but the
+// other person hasn't answered yet. Real data comes from
+// lib/introductions.ts's getWaitingOnThemIntroductions.
+export interface WaitingIntro {
+  id: string;
+  matchmakerName: string;
+  matchmakerAvatarUri?: string;
+  matchAvatarName: string;
+  matchAvatarUri?: string;
+  createdAt: string;
+}

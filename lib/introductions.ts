@@ -1,7 +1,7 @@
 // lib/introductions.ts
 import { supabase } from "./supabase";
 import type { SentIntro } from "../components/intros/mockSentIntros";
-import type { IntroPreview, IntroDetail } from "../components/intro/mockIntros";
+import type { IntroPreview, IntroDetail, WaitingIntro } from "../components/intro/mockIntros";
 import { MOCK_PROFILE_USER } from "../components/profile/mockProfile";
 
 /**
@@ -238,6 +238,57 @@ export async function getIncomingIntroductions(userId: string): Promise<IntroPre
       note: row.note,
       matchAvatarName: other?.name ?? "Someone",
       matchAvatarUri: other?.photos?.[0] ?? undefined,
+    };
+  });
+}
+
+// Mirrors fetchIncomingIntroRows below, but with the complementary status
+// filter: 'pending_b' means user_a already accepted and user_b is the one
+// still pending (and vice versa for 'pending_a') — see
+// respond-to-introduction/index.ts's status-transition logic.
+async function fetchWaitingOnThemRows(userId: string) {
+  const [asA, asB] = await Promise.all([
+    supabase
+      .from("introductions")
+      .select("id, matchmaker_id, user_b_id, created_at")
+      .eq("user_a_id", userId)
+      .eq("status", "pending_b"),
+    supabase
+      .from("introductions")
+      .select("id, matchmaker_id, user_a_id, created_at")
+      .eq("user_b_id", userId)
+      .eq("status", "pending_a"),
+  ]);
+  if (asA.error) throw asA.error;
+  if (asB.error) throw asB.error;
+
+  return [
+    ...(asA.data ?? []).map((row) => ({ ...row, otherUserId: row.user_b_id })),
+    ...(asB.data ?? []).map((row) => ({ ...row, otherUserId: row.user_a_id })),
+  ].sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+}
+
+export async function getWaitingOnThemIntroductions(userId: string): Promise<WaitingIntro[]> {
+  const rows = await fetchWaitingOnThemRows(userId);
+
+  const userIds = Array.from(new Set(rows.flatMap((r) => [r.matchmaker_id, r.otherUserId])));
+  const { data: users, error: usersError } =
+    userIds.length > 0
+      ? await supabase.from("users").select("id, name, photos").in("id", userIds)
+      : { data: [], error: null };
+  if (usersError) throw usersError;
+  const userById = new Map((users ?? []).map((u) => [u.id, u]));
+
+  return rows.map((row) => {
+    const matchmaker = userById.get(row.matchmaker_id);
+    const other = userById.get(row.otherUserId);
+    return {
+      id: row.id,
+      matchmakerName: (matchmaker?.name ?? "Someone").split(" ")[0],
+      matchmakerAvatarUri: matchmaker?.photos?.[0] ?? undefined,
+      matchAvatarName: other?.name ?? "Someone",
+      matchAvatarUri: other?.photos?.[0] ?? undefined,
+      createdAt: row.created_at,
     };
   });
 }
