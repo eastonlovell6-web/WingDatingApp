@@ -2,11 +2,11 @@
 -- Hand-apply in the Supabase SQL Editor (see 001_notifications_schema.sql —
 -- this project has no migrations folder).
 --
--- Adds an 'expired' status so intros that have been pending too long
--- (exceeding the ttl_hours threshold) can be automatically transitioned
--- to a resolved state without requiring either participant to explicitly pass.
--- Expired intros are excluded from the incoming-intros feed, freeing up slots
--- and signaling to users that the intro opportunity has closed.
+-- Adds an 'expired' status value to the introductions table's check constraint.
+-- A daily sweep (a separate Edge Function, not part of this file) transitions
+-- stale pending intros to this status after a 7-day window anchored on
+-- introductions.created_at. Expiry is silent — no push, no matchmaker visibility,
+-- matching the existing silent-pass convention.
 
 alter table introductions drop constraint introductions_status_check;
 
