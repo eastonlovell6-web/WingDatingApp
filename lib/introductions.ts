@@ -97,7 +97,7 @@ export async function getSentIntroductions(matchmakerId: string): Promise<SentIn
     .from("introductions")
     .select("id, user_a_id, user_b_id, note, status, created_at")
     .eq("matchmaker_id", matchmakerId)
-    .neq("status", "withdrawn")
+    .not("status", "in", "(withdrawn,expired)")
     .order("created_at", { ascending: false });
   if (error) throw error;
 
