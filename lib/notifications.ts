@@ -19,6 +19,7 @@ Notifications.setNotificationHandler({
 export type WingNotificationData =
   | { type: "intro"; introId: string }
   | { type: "intro_accepted" }
+  | { type: "intro_matched"; introId: string }
   | { type: "message"; chatId: string }
   | { type: "intro_request" };
 
@@ -113,6 +114,8 @@ export function routeForNotificationData(data: WingNotificationData): string | n
       return `/chat/${data.chatId}`;
     case "intro_accepted":
       return "/(tabs)/intros";
+    case "intro_matched":
+      return "/(tabs)/chats";
     case "intro_request":
       return "/(tabs)";
     default:
