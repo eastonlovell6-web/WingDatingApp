@@ -79,6 +79,7 @@ export default function IntroDetailScreen() {
   const [accepting, setAccepting] = useState(false);
   const [acceptError, setAcceptError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
+  const [matched, setMatched] = useState(false);
 
   function invalidateIntroLists() {
     if (!userId) return;
@@ -121,10 +122,11 @@ export default function IntroDetailScreen() {
     setAccepting(true);
     setAcceptError(null);
     try {
-      await respondToIntroduction(introId, "accept");
+      const result = await respondToIntroduction(introId, "accept");
       invalidateIntroLists();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       acceptScale.value = withSequence(withSpring(1.06, spring), withSpring(1, spring));
+      setMatched(result === "accepted");
       setConfirming(true);
     } catch (err) {
       setAccepting(false);
@@ -220,7 +222,7 @@ export default function IntroDetailScreen() {
       <SendConfirmationOverlay
         visible={confirming}
         onDismiss={handleAcceptConfirmationDismiss}
-        message="You're in — we'll let you know if they say yes too"
+        message={matched ? "You're both in — say hi!" : "You're in — we'll let you know if they say yes too"}
       />
     </View>
   );
