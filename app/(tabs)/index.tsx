@@ -7,11 +7,12 @@ import { IntroFeed } from "../../components/home/IntroFeed";
 import { FriendsRow } from "../../components/home/FriendsRow";
 import { WingCardStack } from "../../components/home/WingCardStack";
 import { PromptCard } from "../../components/home/PromptCard";
+import { WaitingOnThemSection } from "../../components/home/WaitingOnThemSection";
 import { TAB_BAR_CLEARANCE } from "../../components/home/TabBar";
 import { getTodaysPrompt } from "../../lib/prompts";
 import { useAuthStore } from "../../store/auth";
 import { getUserProfile } from "../../lib/supabase";
-import { getIncomingIntroductions } from "../../lib/introductions";
+import { getIncomingIntroductions, getWaitingOnThemIntroductions } from "../../lib/introductions";
 import { getIntroducibleFriends, getMatchmakerFriends } from "../../lib/friendships";
 import { surface } from "../../constants/colors";
 import { spacing } from "../../constants/spacing";
@@ -38,6 +39,11 @@ export default function HomeScreen() {
   const { data: intros } = useQuery({
     queryKey: ["incomingIntros", userId],
     queryFn: () => getIncomingIntroductions(userId!),
+    enabled: !!userId,
+  });
+  const { data: waitingOn } = useQuery({
+    queryKey: ["waitingOnThemIntros", userId],
+    queryFn: () => getWaitingOnThemIntroductions(userId!),
     enabled: !!userId,
   });
   const { data: friends } = useQuery({
@@ -82,6 +88,7 @@ export default function HomeScreen() {
         ) : (
           <IntroFeed intros={intros ?? []} onInvitePress={() => router.push("/invite" as never)} />
         )}
+        <WaitingOnThemSection waiting={waitingOn ?? []} />
         {isWingman ? (
           <WingCardStack friends={friends ?? []} />
         ) : (
