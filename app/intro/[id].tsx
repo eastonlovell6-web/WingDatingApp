@@ -11,6 +11,7 @@ import { TwoPersonHeader } from "../../components/intro/TwoPersonHeader";
 import { IntroNoteCard } from "../../components/intro/IntroNoteCard";
 import { AboutSection } from "../../components/intro/AboutSection";
 import { Button } from "../../components/ui/Button";
+import { SendConfirmationOverlay } from "../../components/matchmaker/SendConfirmationOverlay";
 import { MOCK_PHOTOS, MOCK_PROFILE_USER } from "../../components/profile/mockProfile";
 import { useAuthStore } from "../../store/auth";
 import { extractFunctionErrorMessage, getIntroductionDetail, respondToIntroduction } from "../../lib/introductions";
@@ -77,9 +78,12 @@ export default function IntroDetailScreen() {
   const introId = intro?.id;
   const [accepting, setAccepting] = useState(false);
   const [acceptError, setAcceptError] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
 
-  function invalidateIncomingIntros() {
-    if (userId) queryClient.invalidateQueries({ queryKey: ["incomingIntros", userId] });
+  function invalidateIntroLists() {
+    if (!userId) return;
+    queryClient.invalidateQueries({ queryKey: ["incomingIntros", userId] });
+    queryClient.invalidateQueries({ queryKey: ["waitingOnThemIntros", userId] });
   }
 
   const acceptScale = useSharedValue(1);
@@ -97,7 +101,7 @@ export default function IntroDetailScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     if (introId) {
       respondToIntroduction(introId, "pass")
-        .then(invalidateIncomingIntros)
+        .then(invalidateIntroLists)
         .catch((err) => console.warn("failed to record pass", err));
     }
     if (router.canGoBack()) router.back();
@@ -118,16 +122,19 @@ export default function IntroDetailScreen() {
     setAcceptError(null);
     try {
       await respondToIntroduction(introId, "accept");
-      invalidateIncomingIntros();
+      invalidateIntroLists();
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       acceptScale.value = withSequence(withSpring(1.06, spring), withSpring(1, spring));
-      setTimeout(() => {
-        if (router.canGoBack()) router.back();
-      }, 180);
+      setConfirming(true);
     } catch (err) {
       setAccepting(false);
       setAcceptError(await extractFunctionErrorMessage(err, "Couldn't accept that intro. Try again."));
     }
+  }
+
+  function handleAcceptConfirmationDismiss() {
+    setConfirming(false);
+    if (router.canGoBack()) router.back();
   }
 
   return (
@@ -210,6 +217,11 @@ export default function IntroDetailScreen() {
           </View>
         </>
       )}
+      <SendConfirmationOverlay
+        visible={confirming}
+        onDismiss={handleAcceptConfirmationDismiss}
+        message="You're in — we'll let you know if they say yes too"
+      />
     </View>
   );
 }
