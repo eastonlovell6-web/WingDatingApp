@@ -1,7 +1,7 @@
 import { createAdminClient } from "../_shared/adminClient.ts";
 import { getCallerId, UnauthorizedError } from "../_shared/verifyCaller.ts";
 import { sendPushToUser } from "../_shared/sendExpoPush.ts";
-import { formatIntroAcceptedNotification } from "../_shared/notificationCopy.ts";
+import { formatIntroAcceptedNotification, formatIntroMatchedNotification } from "../_shared/notificationCopy.ts";
 
 Deno.serve(async (req: Request) => {
   try {
@@ -110,11 +110,30 @@ Deno.serve(async (req: Request) => {
       }
 
       const { title, body } = formatIntroAcceptedNotification();
+
+      // Both matched participants need their own push too — the
+      // matchmaker-facing one above never reaches them, and they're the
+      // ones who now have a chat to open. Needs the matchmaker's first
+      // name, which isn't in the `intro` select above (that query only
+      // needed ids/status for the status-transition logic) — same lookup
+      // pattern as nudge-introduction/index.ts.
+      const { data: matchmaker } = await admin
+        .from("users")
+        .select("name")
+        .eq("id", intro.matchmaker_id)
+        .maybeSingle();
+      const matchmakerFirstName = (matchmaker?.name ?? "Someone").split(" ")[0];
+      const { title: matchedTitle, body: matchedBody } = formatIntroMatchedNotification(matchmakerFirstName);
+
       // The status is already committed at this point — push delivery is
       // best-effort and must never turn a successful status update into a
       // failure response.
       try {
-        await sendPushToUser(admin, intro.matchmaker_id, title, body, { type: "intro_accepted" });
+        await Promise.all([
+          sendPushToUser(admin, intro.matchmaker_id, title, body, { type: "intro_accepted" }),
+          sendPushToUser(admin, intro.user_a_id, matchedTitle, matchedBody, { type: "intro_matched", introId }),
+          sendPushToUser(admin, intro.user_b_id, matchedTitle, matchedBody, { type: "intro_matched", introId }),
+        ]);
       } catch (pushError) {
         console.warn("respond-to-introduction: push delivery failed", pushError);
       }

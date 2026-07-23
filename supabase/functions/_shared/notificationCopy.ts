@@ -37,3 +37,10 @@ export function formatMessageNotification(senderFirstName: string) {
     body: `${senderFirstName} sent you a message`,
   };
 }
+
+export function formatIntroMatchedNotification(matchmakerFirstName: string) {
+  return {
+    title: "You're in!",
+    body: `${matchmakerFirstName} introduced you two, and you're both in — say hi`,
+  };
+}
