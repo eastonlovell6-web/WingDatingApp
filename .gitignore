@@ -48,3 +48,6 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Supabase CLI local link state (project ref, pooler host, org id)
+supabase/.temp/
